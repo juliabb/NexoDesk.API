@@ -16,6 +16,7 @@ namespace NexoDesk.Controllers;
 public class ChamadosController : ControllerBase
 {
     private const long TamanhoMaximoAnexo = 10 * 1024 * 1024;
+    private const long TamanhoMaximoRequisicaoAnexo = 11 * 1024 * 1024;
     private static readonly IReadOnlyDictionary<string, string[]> TiposAnexoPermitidos =
         new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
         {
@@ -748,7 +749,7 @@ public class ChamadosController : ControllerBase
     /// <summary>Envia um anexo público ou interno para o chamado.</summary>
     [HttpPost("{id:guid}/anexos")]
     [Consumes("multipart/form-data")]
-    [RequestSizeLimit(TamanhoMaximoAnexo)]
+    [RequestSizeLimit(TamanhoMaximoRequisicaoAnexo)]
     [Tags("Chamados - Anexos")]
     public async Task<IActionResult> AdicionarAnexo(
         Guid id,

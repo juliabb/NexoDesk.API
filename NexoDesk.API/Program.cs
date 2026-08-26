@@ -266,9 +266,10 @@ if (app.Environment.IsDevelopment())
 // MIDDLEWARE
 // ============================================================
 
-app.UseExceptionHandler();
-
 app.UseCors("AllowAll");
+
+// Mantém os cabeçalhos CORS também nas respostas produzidas pelo tratador de erros.
+app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
 

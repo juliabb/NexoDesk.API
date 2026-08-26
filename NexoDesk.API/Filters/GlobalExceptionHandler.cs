@@ -1,3 +1,4 @@
+using Amazon.S3;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,24 @@ public sealed class GlobalExceptionHandler(
         Exception exception,
         CancellationToken cancellationToken)
     {
+        if (exception is AmazonS3Exception storageException)
+        {
+            logger.LogError(storageException,
+                "Falha no armazenamento R2 ao processar {Path}. Código: {ErrorCode}, Status: {StatusCode}.",
+                httpContext.Request.Path,
+                storageException.ErrorCode,
+                storageException.StatusCode);
+
+            await EscreverProblemaAsync(
+                httpContext,
+                StatusCodes.Status502BadGateway,
+                "Falha ao armazenar o anexo",
+                "O serviço de arquivos recusou o envio. Verifique o endpoint, o bucket e as permissões do token R2.",
+                cancellationToken);
+
+            return true;
+        }
+
         if (exception is DbUpdateException
         {
             InnerException: PostgresException
