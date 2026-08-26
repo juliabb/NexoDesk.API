@@ -6,22 +6,47 @@ public static class DevelopmentEnvLoader
 {
     public static void Load(WebApplicationBuilder builder)
     {
-        if (!builder.Environment.IsDevelopment())
-        {
-            return;
-        }
+        Dictionary<string, string> values;
 
-        var envPath = EncontrarArquivoEnv(builder.Environment.ContentRootPath);
-        if (envPath is null)
+        if (builder.Environment.IsDevelopment())
         {
-            return;
-        }
+            var envPath = EncontrarArquivoEnv(builder.Environment.ContentRootPath);
+            if (envPath is null)
+            {
+                return;
+            }
 
-        var values = File.ReadLines(envPath)
-            .Select(ParseLine)
-            .Where(item => item.HasValue)
-            .ToDictionary(item => item!.Value.Key, item => item!.Value.Value,
-                StringComparer.OrdinalIgnoreCase);
+            values = File.ReadLines(envPath)
+                .Select(ParseLine)
+                .Where(item => item.HasValue)
+                .ToDictionary(item => item!.Value.Key, item => item!.Value.Value,
+                    StringComparer.OrdinalIgnoreCase);
+        }
+        else
+        {
+            var supportedKeys = new[]
+            {
+                "DATABASE_URL",
+                "JWT_SECRET",
+                "JWT_ISSUER",
+                "JWT_AUDIENCE",
+                "JWT_EXPIRATION_MINUTES",
+                "CPF_HMAC_KEY"
+            };
+
+            values = supportedKeys
+                .Select(key => new KeyValuePair<string, string?>(
+                    key, Environment.GetEnvironmentVariable(key)))
+                .Where(item => !string.IsNullOrWhiteSpace(item.Value))
+                .ToDictionary(item => item.Key, item => item.Value!,
+                    StringComparer.OrdinalIgnoreCase);
+
+            // Mantém compatibilidade com a configuração nativa usando chaves com "__".
+            if (!values.ContainsKey("DATABASE_URL"))
+            {
+                return;
+            }
+        }
 
         var configuration = new Dictionary<string, string?>
         {

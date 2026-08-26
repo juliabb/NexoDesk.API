@@ -55,3 +55,15 @@ coordenadoria e administradores podem operar todas as filas.
 ## Próxima etapa
 
 Implementar indicadores de prazo e SLA do fluxo de atendimento.
+
+## Deploy no Render
+
+O repositório possui um `Dockerfile` na raiz. No Web Service, use Docker, contexto
+`.` e caminho `./Dockerfile`. Configure `/healthz` como Health Check Path.
+
+Variáveis obrigatórias: `DATABASE_URL`, `JWT_SECRET`, `JWT_ISSUER`,
+`JWT_AUDIENCE`, `JWT_EXPIRATION_MINUTES`, `CPF_HMAC_KEY` e
+`Database__ApplyMigrations=true`.
+
+O armazenamento local de anexos é adequado apenas para desenvolvimento. Em
+serviços sem disco persistente, os arquivos são perdidos após reinícios e deploys.

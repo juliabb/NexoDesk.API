@@ -1,0 +1,13 @@
+.git
+.gitignore
+.vs
+.vscode
+**/bin
+**/obj
+**/*.user
+.env
+.env.*
+!.env.example
+storage
+**/storage
+README.md

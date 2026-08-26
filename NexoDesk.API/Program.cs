@@ -225,7 +225,8 @@ var app = builder.Build();
 
 // Em desenvolvimento, mantém o banco local sincronizado com as migrations do projeto.
 // Em produção, a aplicação das migrations deve ocorrer de forma controlada no processo de deploy.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() ||
+    builder.Configuration.GetValue<bool>("Database:ApplyMigrations"))
 {
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -261,6 +262,13 @@ app.UseAuthentication();
 
 // Verifica se o usuário possui autorização.
 app.UseAuthorization();
+
+app.MapGet("/healthz", async (AppDbContext dbContext, CancellationToken cancellationToken) =>
+    await dbContext.Database.CanConnectAsync(cancellationToken)
+        ? Results.Ok(new { status = "healthy" })
+        : Results.StatusCode(StatusCodes.Status503ServiceUnavailable))
+    .AllowAnonymous()
+    .ExcludeFromDescription();
 
 app.MapControllers();
 
