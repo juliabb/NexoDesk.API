@@ -42,15 +42,27 @@ public sealed class R2AnexoStorageService : IAnexoStorageService, IDisposable
         var key = ObterChave(chamadoId, nomeArmazenado);
 
         await using var stream = arquivo.OpenReadStream();
-        await _client.PutObjectAsync(new PutObjectRequest
+        try
         {
-            BucketName = _bucketName,
-            Key = key,
-            InputStream = stream,
-            ContentType = arquivo.ContentType,
-            DisablePayloadSigning = true,
-            DisableDefaultChecksumValidation = true
-        }, cancellationToken);
+            await _client.PutObjectAsync(new PutObjectRequest
+            {
+                BucketName = _bucketName,
+                Key = key,
+                InputStream = stream,
+                ContentType = arquivo.ContentType,
+                DisablePayloadSigning = true,
+                DisableDefaultChecksumValidation = true
+            }, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            throw new AnexoStorageException(
+                $"Falha ao enviar o arquivo para o bucket R2 '{_bucketName}'.", exception);
+        }
 
         return nomeArmazenado;
     }

@@ -1,5 +1,13 @@
 namespace NexoDesk.Helpers;
 
+public sealed class AnexoStorageException : Exception
+{
+    public AnexoStorageException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+}
+
 public interface IAnexoStorageService
 {
     Task<string> SalvarAsync(Guid chamadoId, IFormFile arquivo, CancellationToken cancellationToken);

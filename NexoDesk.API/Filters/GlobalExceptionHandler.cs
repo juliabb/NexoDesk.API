@@ -2,6 +2,7 @@ using Amazon.S3;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NexoDesk.Helpers;
 using Npgsql;
 
 namespace NexoDesk.API.Filters;
@@ -14,6 +15,25 @@ public sealed class GlobalExceptionHandler(
         Exception exception,
         CancellationToken cancellationToken)
     {
+        if (exception is AnexoStorageException storageWrapper)
+        {
+            var causa = storageWrapper.InnerException;
+            logger.LogError(storageWrapper,
+                "Falha no armazenamento de anexos em {Path}. Causa: {ExceptionType}; Mensagem: {ExceptionMessage}.",
+                httpContext.Request.Path,
+                causa?.GetType().FullName ?? storageWrapper.GetType().FullName,
+                causa?.Message ?? storageWrapper.Message);
+
+            await EscreverProblemaAsync(
+                httpContext,
+                StatusCodes.Status502BadGateway,
+                "Falha ao armazenar o anexo",
+                "Não foi possível acessar o Cloudflare R2. Confira o endpoint, o nome do bucket e as credenciais configuradas no Render.",
+                cancellationToken);
+
+            return true;
+        }
+
         if (exception is AmazonS3Exception storageException)
         {
             logger.LogError(storageException,
