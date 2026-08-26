@@ -10,10 +10,10 @@ public class Usuario
     public string CpfHash { get; set; } = string.Empty;
     public string Ramal { get; set; } = string.Empty;
     public string SenhaHash { get; set; } = string.Empty;
-    public int CoordenadoriaId { get; set; }
-    public Coordenadoria? Coordenadoria { get; set; }
-    public int AreaId { get; set; }
-    public Area? Area { get; set; }
+    public int DepartamentoId { get; set; }
+    public Departamento? Departamento { get; set; }
+    public int SetorId { get; set; }
+    public Setor? Setor { get; set; }
     public PerfilUsuario Perfil { get; set; } = PerfilUsuario.Padrao;
     public StatusUsuario Status { get; set; } = StatusUsuario.AguardandoAprovacao;
     public bool Ativo { get; set; } = true;

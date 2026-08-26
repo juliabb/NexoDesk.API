@@ -179,8 +179,8 @@ public class UsuariosController : ControllerBase
                 emailCorporativo = u.EmailCorporativo,
                 ramal = u.Ramal,
                 perfil = u.Perfil,
-                coordenadoria = u.Coordenadoria!.Nome,
-                area = u.Area!.Nome,
+                departamento = u.Departamento!.Nome,
+                setor = u.Setor!.Nome,
                 criadoEm = u.CriadoEm
             })
             .FirstOrDefaultAsync();
@@ -200,8 +200,8 @@ public class UsuariosController : ControllerBase
             usuario.emailCorporativo,
             usuario.ramal,
             usuario.perfil,
-            usuario.coordenadoria,
-            usuario.area,
+            usuario.departamento,
+            usuario.setor,
             usuario.criadoEm
         });
     }
@@ -235,18 +235,18 @@ public class UsuariosController : ControllerBase
                 EF.Functions.ILike(u.NomeCompleto, $"%{nome}%"));
         }
 
-        // Filtro por coordenadoria
-        if (request.CoordenadoriaId.HasValue)
+        // Filtro por departamento
+        if (request.DepartamentoId.HasValue)
         {
             query = query.Where(u =>
-                u.CoordenadoriaId == request.CoordenadoriaId);
+                u.DepartamentoId == request.DepartamentoId);
         }
 
-        // Filtro por área
-        if (request.AreaId.HasValue)
+        // Filtro por setor
+        if (request.SetorId.HasValue)
         {
             query = query.Where(u =>
-                u.AreaId == request.AreaId);
+                u.SetorId == request.SetorId);
         }
 
         if (request.Perfil.HasValue)
@@ -267,9 +267,9 @@ public class UsuariosController : ControllerBase
             {
                 nomeCompleto = u.NomeCompleto,
                 emailCorporativo = u.EmailCorporativo,
-                coordenadoria = u.Coordenadoria!.Nome,
-                siglaCoordenadoria = u.Coordenadoria!.Sigla,
-                area = u.Area!.Nome,
+                departamento = u.Departamento!.Nome,
+                siglaDepartamento = u.Departamento!.Sigla,
+                setor = u.Setor!.Nome,
                 ramal = u.Ramal,
                 perfil = u.Perfil.ToString()
             })

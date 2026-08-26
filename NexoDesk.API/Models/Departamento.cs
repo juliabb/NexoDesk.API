@@ -1,6 +1,6 @@
 namespace NexoDesk.Models;
 
-public class Coordenadoria
+public class Departamento
 {
     public int Id { get; set; }
 
@@ -8,8 +8,8 @@ public class Coordenadoria
 
     public string Sigla { get; set; } = string.Empty;
 
-    public ICollection<Area> Areas { get; set; }
-        = new List<Area>();
+    public ICollection<Setor> Setores { get; set; }
+        = new List<Setor>();
 
     public ICollection<Usuario> Usuarios { get; set; }
         = new List<Usuario>();

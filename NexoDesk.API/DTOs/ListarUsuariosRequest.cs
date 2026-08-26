@@ -13,11 +13,11 @@ public class ListarUsuariosRequest
     // Pesquisa pelo nome completo.
     public string? Nome { get; set; }
 
-    // Filtro pela coordenadoria.
-    public int? CoordenadoriaId { get; set; }
+    // Filtro pela departamento.
+    public int? DepartamentoId { get; set; }
 
-    // Filtro pela área.
-    public int? AreaId { get; set; }
+    // Filtro pela setor.
+    public int? SetorId { get; set; }
 
     // Filtro pelo perfil do usuário.
     public PerfilUsuario? Perfil { get; set; }

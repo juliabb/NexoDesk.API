@@ -1,14 +1,14 @@
 namespace NexoDesk.Models;
 
-public class Area
+public class Setor
 {
     public int Id { get; set; }
 
     public string Nome { get; set; } = string.Empty;
 
-    public int CoordenadoriaId { get; set; }
+    public int DepartamentoId { get; set; }
 
-    public Coordenadoria Coordenadoria { get; set; } = null!;
+    public Departamento Departamento { get; set; } = null!;
 
     public ICollection<Usuario> Usuarios { get; set; }
         = new List<Usuario>();

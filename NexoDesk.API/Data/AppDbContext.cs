@@ -11,8 +11,8 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<Usuario> Usuarios { get; set; }
-    public DbSet<Coordenadoria> Coordenadorias { get; set; }
-    public DbSet<Area> Areas { get; set; }
+    public DbSet<Departamento> Departamentos { get; set; }
+    public DbSet<Setor> Setores { get; set; }
     public DbSet<AuditoriaUsuario> AuditoriasUsuarios { get; set; }
     public DbSet<HistoricoSenha> HistoricosSenhas { get; set; }
     public DbSet<CategoriaChamado> CategoriasChamados { get; set; }
@@ -42,9 +42,9 @@ public class AppDbContext : DbContext
         }
 
         ConfigurarUsuario(modelBuilder);
-        ConfigurarArea(modelBuilder);
+        ConfigurarSetor(modelBuilder);
 
-        ConfigurarCoordenadoria(modelBuilder);
+        ConfigurarDepartamento(modelBuilder);
         ConfigurarCategoriaChamado(modelBuilder);
         ConfigurarChamado(modelBuilder);
         ConfigurarHistoricoChamado(modelBuilder);
@@ -132,64 +132,64 @@ public class AppDbContext : DbContext
             entity.HasIndex(usuario => usuario.CpfHash)
                 .IsUnique();
 
-            entity.HasOne(usuario => usuario.Coordenadoria)
-                .WithMany(coordenadoria => coordenadoria.Usuarios)
-                .HasForeignKey(usuario => usuario.CoordenadoriaId)
+            entity.HasOne(usuario => usuario.Departamento)
+                .WithMany(departamento => departamento.Usuarios)
+                .HasForeignKey(usuario => usuario.DepartamentoId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne(usuario => usuario.Area)
-                .WithMany(area => area.Usuarios)
-                .HasForeignKey(usuario => usuario.AreaId)
+            entity.HasOne(usuario => usuario.Setor)
+                .WithMany(setor => setor.Usuarios)
+                .HasForeignKey(usuario => usuario.SetorId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
     }
 
-    private static void ConfigurarArea(ModelBuilder modelBuilder)
+    private static void ConfigurarSetor(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Area>(entity =>
+        modelBuilder.Entity<Setor>(entity =>
         {
-            entity.ToTable("areas");
+            entity.ToTable("setores");
 
-            entity.HasKey(area => area.Id);
+            entity.HasKey(setor => setor.Id);
 
-            entity.Property(area => area.Nome)
+            entity.Property(setor => setor.Nome)
                 .HasMaxLength(150)
                 .IsRequired();
 
-            entity.HasOne(area => area.Coordenadoria)
-                .WithMany(coordenadoria => coordenadoria.Areas)
-                .HasForeignKey(area => area.CoordenadoriaId)
+            entity.HasOne(setor => setor.Departamento)
+                .WithMany(departamento => departamento.Setores)
+                .HasForeignKey(setor => setor.DepartamentoId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasIndex(area => new
+            entity.HasIndex(setor => new
             {
-                area.CoordenadoriaId,
-                area.Nome
+                setor.DepartamentoId,
+                setor.Nome
             })
             .IsUnique();
         });
     }
 
-    private static void ConfigurarCoordenadoria(ModelBuilder modelBuilder)
+    private static void ConfigurarDepartamento(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Coordenadoria>(entity =>
+        modelBuilder.Entity<Departamento>(entity =>
         {
-            entity.ToTable("coordenadorias");
+            entity.ToTable("departamentos");
 
-            entity.HasKey(coordenadoria => coordenadoria.Id);
+            entity.HasKey(departamento => departamento.Id);
 
-            entity.Property(coordenadoria => coordenadoria.Nome)
+            entity.Property(departamento => departamento.Nome)
                 .HasMaxLength(150)
                 .IsRequired();
 
-            entity.Property(coordenadoria => coordenadoria.Sigla)
+            entity.Property(departamento => departamento.Sigla)
                 .HasMaxLength(20)
                 .IsRequired();
 
-            entity.HasIndex(coordenadoria => coordenadoria.Nome)
+            entity.HasIndex(departamento => departamento.Nome)
                 .IsUnique();
 
-            entity.HasIndex(coordenadoria => coordenadoria.Sigla)
+            entity.HasIndex(departamento => departamento.Sigla)
                 .IsUnique();
         });
     }
@@ -205,9 +205,9 @@ public class AppDbContext : DbContext
             entity.Property(categoria => categoria.Ativa).HasDefaultValue(true).IsRequired();
             entity.Property(categoria => categoria.CriadaEm).IsRequired();
             entity.HasIndex(categoria => categoria.Nome).IsUnique();
-            entity.HasOne(categoria => categoria.AreaResponsavel)
-                .WithMany(area => area.CategoriasResponsaveis)
-                .HasForeignKey(categoria => categoria.AreaResponsavelId)
+            entity.HasOne(categoria => categoria.SetorResponsavel)
+                .WithMany(setor => setor.CategoriasResponsaveis)
+                .HasForeignKey(categoria => categoria.SetorResponsavelId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
     }
@@ -226,7 +226,7 @@ public class AppDbContext : DbContext
             entity.Property(chamado => chamado.CriadoEm).IsRequired();
             entity.HasIndex(chamado => chamado.Protocolo).IsUnique();
             entity.HasIndex(chamado => new { chamado.SolicitanteId, chamado.CriadoEm });
-            entity.HasIndex(chamado => new { chamado.AreaResponsavelId, chamado.Status });
+            entity.HasIndex(chamado => new { chamado.SetorResponsavelId, chamado.Status });
 
             entity.HasOne(chamado => chamado.Solicitante)
                 .WithMany(usuario => usuario.ChamadosSolicitados)
@@ -240,13 +240,13 @@ public class AppDbContext : DbContext
                 .WithMany(categoria => categoria.Chamados)
                 .HasForeignKey(chamado => chamado.CategoriaId)
                 .OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne(chamado => chamado.AreaSolicitante)
-                .WithMany(area => area.ChamadosSolicitados)
-                .HasForeignKey(chamado => chamado.AreaSolicitanteId)
+            entity.HasOne(chamado => chamado.SetorSolicitante)
+                .WithMany(setor => setor.ChamadosSolicitados)
+                .HasForeignKey(chamado => chamado.SetorSolicitanteId)
                 .OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne(chamado => chamado.AreaResponsavel)
-                .WithMany(area => area.ChamadosResponsaveis)
-                .HasForeignKey(chamado => chamado.AreaResponsavelId)
+            entity.HasOne(chamado => chamado.SetorResponsavel)
+                .WithMany(setor => setor.ChamadosResponsaveis)
+                .HasForeignKey(chamado => chamado.SetorResponsavelId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
     }

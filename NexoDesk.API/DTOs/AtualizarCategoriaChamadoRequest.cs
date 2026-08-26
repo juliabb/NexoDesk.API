@@ -11,7 +11,7 @@ public class AtualizarCategoriaChamadoRequest
     public string? Descricao { get; set; }
 
     [Range(1, int.MaxValue)]
-    public int AreaResponsavelId { get; set; }
+    public int SetorResponsavelId { get; set; }
 
     public bool Ativa { get; set; }
 }

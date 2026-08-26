@@ -28,11 +28,11 @@ public class GestorController : ControllerBase
     // ============================================================
     // ALTERAR STATUS DO USUÁRIO
     // Gestores podem aprovar, reprovar e desativar usuários
-    // do Perfil Padrão somente da própria Coordenadoria.
+    // do Perfil Padrão somente da própria Departamento.
     // ============================================================
 
     /// <summary>
-    /// Altera o status de um usuário da própria Coordenadoria.
+    /// Altera o status de um usuário da própria Departamento.
     /// </summary>
     /// <remarks>
     /// O Gestor pode:
@@ -75,7 +75,7 @@ public class GestorController : ControllerBase
             });
         }
 
-        // Busca o Gestor no banco para obter sua Coordenadoria.
+        // Busca o Gestor no banco para obter sua Departamento.
         var gestor = await _context.Usuarios
             .AsNoTracking()
             .FirstOrDefaultAsync(usuario =>
@@ -120,7 +120,7 @@ public class GestorController : ControllerBase
         // VALIDA A COORDENADORIA
         // ========================================================
 
-        if (usuario.CoordenadoriaId != gestor.CoordenadoriaId)
+        if (usuario.DepartamentoId != gestor.DepartamentoId)
         {
             return Forbid();
         }
@@ -242,12 +242,12 @@ public class GestorController : ControllerBase
 
     // ============================================================
     // LISTAR USUÁRIOS PENDENTES
-    // Retorna somente os usuários pendentes da Coordenadoria
+    // Retorna somente os usuários pendentes da Departamento
     // do Gestor autenticado.
     // ============================================================
 
     /// <summary>
-    /// Lista os usuários pendentes da própria Coordenadoria.
+    /// Lista os usuários pendentes da própria Departamento.
     /// </summary>
     [HttpGet("usuarios/pendentes")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -278,7 +278,7 @@ public class GestorController : ControllerBase
             });
         }
 
-        // Busca o Gestor no banco para obter sua Coordenadoria.
+        // Busca o Gestor no banco para obter sua Departamento.
         var gestor = await _context.Usuarios
             .AsNoTracking()
             .FirstOrDefaultAsync(usuario =>
@@ -308,7 +308,7 @@ public class GestorController : ControllerBase
             .AsNoTracking()
             .Where(usuario =>
                 usuario.Status == StatusUsuario.AguardandoAprovacao &&
-                usuario.CoordenadoriaId == gestor.CoordenadoriaId);
+                usuario.DepartamentoId == gestor.DepartamentoId);
 
         var totalRegistros = await query.CountAsync();
         var totalPaginas = (int)Math.Ceiling(totalRegistros / (double)pageSize);
@@ -318,8 +318,8 @@ public class GestorController : ControllerBase
             {
                 usuario.NomeCompleto,
                 usuario.EmailCorporativo,
-                coordenadoria = usuario.Coordenadoria!.Nome,
-                area = usuario.Area!.Nome,
+                departamento = usuario.Departamento!.Nome,
+                setor = usuario.Setor!.Nome,
                 usuario.CriadoEm
             })
             .OrderBy(usuario => usuario.CriadoEm)
@@ -340,17 +340,17 @@ public class GestorController : ControllerBase
     // ============================================================
     // LISTAR USUÁRIOS
     // Permite ao Gestor consultar os usuários cadastrados
-    // somente da própria Coordenadoria.
+    // somente da própria Departamento.
     // Utiliza paginação, pesquisa por nome,
-    // área, perfil e status.
+    // setor, perfil e status.
     // ============================================================
 
     /// <summary>
-    /// Lista os usuários da própria Coordenadoria.
+    /// Lista os usuários da própria Departamento.
     /// </summary>
     /// <remarks>
-    /// Permite filtrar os usuários por nome, área, perfil e status.
-    /// A Coordenadoria é determinada automaticamente pelo Gestor
+    /// Permite filtrar os usuários por nome, setor, perfil e status.
+    /// A Departamento é determinada automaticamente pelo Gestor
     /// autenticado e não pode ser alterada através da requisição.
     /// </remarks>
     [HttpGet("usuarios")]
@@ -378,7 +378,7 @@ public class GestorController : ControllerBase
             });
         }
 
-        // Busca o Gestor no banco para obter sua Coordenadoria.
+        // Busca o Gestor no banco para obter sua Departamento.
         var gestor = await _context.Usuarios
             .AsNoTracking()
             .FirstOrDefaultAsync(usuario =>
@@ -428,7 +428,7 @@ public class GestorController : ControllerBase
         var query = _context.Usuarios
             .AsNoTracking()
             .Where(usuario =>
-                usuario.CoordenadoriaId == gestor.CoordenadoriaId)
+                usuario.DepartamentoId == gestor.DepartamentoId)
             .AsQueryable();
 
         // ========================================================
@@ -450,11 +450,11 @@ public class GestorController : ControllerBase
         // FILTRO POR ÁREA
         // ========================================================
 
-        if (request.AreaId.HasValue)
+        if (request.SetorId.HasValue)
         {
             query = query.Where(usuario =>
-                usuario.AreaId ==
-                request.AreaId.Value);
+                usuario.SetorId ==
+                request.SetorId.Value);
         }
 
         // ========================================================
@@ -513,11 +513,11 @@ public class GestorController : ControllerBase
 
                 usuario.EmailCorporativo,
 
-                coordenadoria =
-                    usuario.Coordenadoria!.Nome,
+                departamento =
+                    usuario.Departamento!.Nome,
 
-                area =
-                    usuario.Area!.Nome,
+                setor =
+                    usuario.Setor!.Nome,
 
                 ramal =
                 usuario.Ramal,

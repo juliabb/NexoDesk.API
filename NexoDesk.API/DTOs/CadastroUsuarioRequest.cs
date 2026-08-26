@@ -27,11 +27,11 @@ public class CadastroUsuarioRequest
         ErrorMessage = "A senha deve conter letra maiúscula, letra minúscula, número e caractere especial.")]
     public string Senha { get; set; } = string.Empty;
 
-    [Range(1, int.MaxValue, ErrorMessage = "A coordenadoria deve ser informada.")]
+    [Range(1, int.MaxValue, ErrorMessage = "A departamento deve ser informada.")]
     [DefaultValue(1)]
-    public int CoordenadoriaId { get; set; }
+    public int DepartamentoId { get; set; }
 
-    [Range(1, int.MaxValue, ErrorMessage = "A área deve ser informada.")]
+    [Range(1, int.MaxValue, ErrorMessage = "A setor deve ser informada.")]
     [DefaultValue(1)]
-    public int AreaId { get; set; }
+    public int SetorId { get; set; }
 }

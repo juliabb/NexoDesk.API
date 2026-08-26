@@ -39,10 +39,10 @@ public class CategoriasChamadosController : ControllerBase
                 categoria.Nome,
                 categoria.Descricao,
                 categoria.Ativa,
-                areaResponsavel = new
+                setorResponsavel = new
                 {
-                    categoria.AreaResponsavel.Id,
-                    categoria.AreaResponsavel.Nome
+                    categoria.SetorResponsavel.Id,
+                    categoria.SetorResponsavel.Nome
                 }
             })
             .ToListAsync();
@@ -57,13 +57,13 @@ public class CategoriasChamadosController : ControllerBase
     public async Task<IActionResult> Criar([FromBody] CriarCategoriaChamadoRequest request)
     {
         var nome = request.Nome.Trim();
-        var areaExiste = await _context.Areas.AnyAsync(area => area.Id == request.AreaResponsavelId);
+        var setorExiste = await _context.Setores.AnyAsync(setor => setor.Id == request.SetorResponsavelId);
 
-        if (!areaExiste)
+        if (!setorExiste)
         {
             return Problem(statusCode: StatusCodes.Status404NotFound,
-                title: "Área responsável não encontrada.",
-                detail: $"Não existe uma área com o identificador {request.AreaResponsavelId}.");
+                title: "Setor responsável não encontrada.",
+                detail: $"Não existe uma setor com o identificador {request.SetorResponsavelId}.");
         }
 
         var nomeEmUso = await _context.CategoriasChamados
@@ -79,7 +79,7 @@ public class CategoriasChamadosController : ControllerBase
         {
             Nome = nome,
             Descricao = NormalizarTextoOpcional(request.Descricao),
-            AreaResponsavelId = request.AreaResponsavelId
+            SetorResponsavelId = request.SetorResponsavelId
         };
 
         _context.CategoriasChamados.Add(categoria);
@@ -90,7 +90,7 @@ public class CategoriasChamadosController : ControllerBase
             categoria.Id,
             categoria.Nome,
             categoria.Descricao,
-            categoria.AreaResponsavelId,
+            categoria.SetorResponsavelId,
             categoria.Ativa
         });
     }
@@ -110,12 +110,12 @@ public class CategoriasChamadosController : ControllerBase
                 detail: $"Não existe uma categoria com o identificador {id}.");
         }
 
-        var areaExiste = await _context.Areas.AnyAsync(area => area.Id == request.AreaResponsavelId);
-        if (!areaExiste)
+        var setorExiste = await _context.Setores.AnyAsync(setor => setor.Id == request.SetorResponsavelId);
+        if (!setorExiste)
         {
             return Problem(statusCode: StatusCodes.Status404NotFound,
-                title: "Área responsável não encontrada.",
-                detail: $"Não existe uma área com o identificador {request.AreaResponsavelId}.");
+                title: "Setor responsável não encontrada.",
+                detail: $"Não existe uma setor com o identificador {request.SetorResponsavelId}.");
         }
 
         var nome = request.Nome.Trim();
@@ -130,7 +130,7 @@ public class CategoriasChamadosController : ControllerBase
 
         categoria.Nome = nome;
         categoria.Descricao = NormalizarTextoOpcional(request.Descricao);
-        categoria.AreaResponsavelId = request.AreaResponsavelId;
+        categoria.SetorResponsavelId = request.SetorResponsavelId;
         categoria.Ativa = request.Ativa;
         categoria.AtualizadaEm = DateTime.UtcNow;
         await _context.SaveChangesAsync();

@@ -7,7 +7,7 @@ public class ListarColaboradoresRequest
 
     public string? Nome { get; set; }
 
-    public int? CoordenadoriaId { get; set; }
-    public int? AreaId { get; set; }
+    public int? DepartamentoId { get; set; }
+    public int? SetorId { get; set; }
     public NexoDesk.Enums.PerfilUsuario? Perfil { get; set; }
 }

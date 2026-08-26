@@ -162,31 +162,31 @@ public class AdminController : ControllerBase
             return Conflict(new { mensagem = "Já existe um usuário com esse e-mail." });
         }
 
-        var areaValida = await _context.Areas
-            .AnyAsync(a => a.Id == request.AreaId &&
-                           a.CoordenadoriaId == request.CoordenadoriaId);
+        var setorValida = await _context.Setores
+            .AnyAsync(a => a.Id == request.SetorId &&
+                           a.DepartamentoId == request.DepartamentoId);
 
-        if (!areaValida)
+        if (!setorValida)
         {
             return BadRequest(new
             {
-                mensagem = "A área informada não pertence à coordenadoria selecionada."
+                mensagem = "O setor informado não pertence ao departamento selecionado."
             });
         }
 
         if (usuario.Perfil == PerfilUsuario.Gestor && usuario.Ativo)
         {
-            var gestoresNaCoordenadoria = await _context.Usuarios
+            var gestoresNaDepartamento = await _context.Usuarios
                 .CountAsync(u => u.Id != usuario.Id &&
-                                 u.CoordenadoriaId == request.CoordenadoriaId &&
+                                 u.DepartamentoId == request.DepartamentoId &&
                                  u.Perfil == PerfilUsuario.Gestor &&
                                  u.Ativo);
 
-            if (gestoresNaCoordenadoria >= 2)
+            if (gestoresNaDepartamento >= 2)
             {
                 return BadRequest(new
                 {
-                    mensagem = "A coordenadoria já possui o número máximo de 2 gestores."
+                    mensagem = "A departamento já possui o número máximo de 2 gestores."
                 });
             }
         }
@@ -194,20 +194,20 @@ public class AdminController : ControllerBase
         var dadosAnteriores = new
         {
             usuario.NomeCompleto, usuario.EmailCorporativo, usuario.Ramal,
-            usuario.CoordenadoriaId, usuario.AreaId
+            usuario.DepartamentoId, usuario.SetorId
         };
         usuario.NomeCompleto = request.NomeCompleto.Trim();
         usuario.EmailCorporativo = emailCorporativo;
         usuario.Ramal = request.Ramal.Trim();
-        usuario.CoordenadoriaId = request.CoordenadoriaId;
-        usuario.AreaId = request.AreaId;
+        usuario.DepartamentoId = request.DepartamentoId;
+        usuario.SetorId = request.SetorId;
         usuario.AtualizadoEm = DateTime.UtcNow;
 
         await _auditoria.RegistrarAsync(usuario.Id, "Dados pessoais alterados", new
         {
             anterior = dadosAnteriores,
             atual = new { usuario.NomeCompleto, usuario.EmailCorporativo,
-                usuario.Ramal, usuario.CoordenadoriaId, usuario.AreaId }
+                usuario.Ramal, usuario.DepartamentoId, usuario.SetorId }
         }, HttpContext);
         await _context.SaveChangesAsync();
 
@@ -217,8 +217,8 @@ public class AdminController : ControllerBase
             usuario.NomeCompleto,
             usuario.EmailCorporativo,
             usuario.Ramal,
-            usuario.CoordenadoriaId,
-            usuario.AreaId,
+            usuario.DepartamentoId,
+            usuario.SetorId,
             usuario.AtualizadoEm
         });
     }
@@ -468,7 +468,7 @@ public class AdminController : ControllerBase
         {
             var quantidadeGestores = await _context.Usuarios
                 .CountAsync(usuarioExistente =>
-                    usuarioExistente.CoordenadoriaId == usuario.CoordenadoriaId &&
+                    usuarioExistente.DepartamentoId == usuario.DepartamentoId &&
                     usuarioExistente.Perfil == PerfilUsuario.Gestor &&
                     usuarioExistente.Ativo);
 
@@ -477,7 +477,7 @@ public class AdminController : ControllerBase
                 return BadRequest(new
                 {
                     mensagem =
-                        "A coordenadoria já possui o número máximo de 2 gestores."
+                        "A departamento já possui o número máximo de 2 gestores."
                 });
             }
         }
@@ -539,15 +539,15 @@ public class AdminController : ControllerBase
 
                 usuario.EmailCorporativo,
 
-                usuario.CoordenadoriaId,
+                usuario.DepartamentoId,
 
-                coordenadoria =
-                    usuario.Coordenadoria!.Nome,
+                departamento =
+                    usuario.Departamento!.Nome,
 
-                usuario.AreaId,
+                usuario.SetorId,
 
-                area =
-                    usuario.Area!.Nome,
+                setor =
+                    usuario.Setor!.Nome,
 
                 ramal =
                     usuario.Ramal,
@@ -599,15 +599,15 @@ public class AdminController : ControllerBase
             emailCorporativo =
                 usuario.EmailCorporativo,
 
-            coordenadoriaId = usuario.CoordenadoriaId,
+            departamentoId = usuario.DepartamentoId,
 
-            coordenadoria =
-                usuario.coordenadoria,
+            departamento =
+                usuario.departamento,
 
-            areaId = usuario.AreaId,
+            setorId = usuario.SetorId,
 
-            area =
-                usuario.area,
+            setor =
+                usuario.setor,
 
             ramal =
                 usuario.ramal,
@@ -679,8 +679,8 @@ public class AdminController : ControllerBase
             {
                 usuario.NomeCompleto,
                 usuario.EmailCorporativo,
-                coordenadoria = usuario.Coordenadoria!.Nome,
-                area = usuario.Area!.Nome,
+                departamento = usuario.Departamento!.Nome,
+                setor = usuario.Setor!.Nome,
                 usuario.CriadoEm
             })
             .OrderBy(usuario => usuario.CriadoEm)
@@ -701,14 +701,14 @@ public class AdminController : ControllerBase
     // ============================================================
     // LISTAR USUÁRIOS
     // Permite ao administrador consultar os usuários cadastrados
-    // utilizando paginação, pesquisa por nome, coordenadoria e área.
+    // utilizando paginação, pesquisa por nome, departamento e setor.
     // ============================================================
 
     /// <summary>
     /// Lista os usuários cadastrados no sistema.
     /// </summary>
     /// <remarks>
-    /// Permite filtrar os usuários por nome, coordenadoria e área.
+    /// Permite filtrar os usuários por nome, departamento e setor.
     /// A consulta utiliza paginação para evitar o carregamento
     /// de todos os usuários de uma única vez.
     /// </remarks>
@@ -763,22 +763,22 @@ public class AdminController : ControllerBase
         // FILTRO POR COORDENADORIA
         // ========================================================
 
-        if (request.CoordenadoriaId.HasValue)
+        if (request.DepartamentoId.HasValue)
         {
             query = query.Where(usuario =>
-                usuario.CoordenadoriaId ==
-                request.CoordenadoriaId.Value);
+                usuario.DepartamentoId ==
+                request.DepartamentoId.Value);
         }
 
         // ========================================================
         // FILTRO POR ÁREA
         // ========================================================
 
-        if (request.AreaId.HasValue)
+        if (request.SetorId.HasValue)
         {
             query = query.Where(usuario =>
-                usuario.AreaId ==
-                request.AreaId.Value);
+                usuario.SetorId ==
+                request.SetorId.Value);
         }
 
         // ========================================================
@@ -833,11 +833,11 @@ public class AdminController : ControllerBase
 
                 usuario.EmailCorporativo,
 
-                coordenadoria =
-                    usuario.Coordenadoria!.Nome,
+                departamento =
+                    usuario.Departamento!.Nome,
 
-                area =
-                    usuario.Area!.Nome,
+                setor =
+                    usuario.Setor!.Nome,
 
                 ramal =
                 usuario.Ramal,

@@ -103,50 +103,50 @@ public class AuthController : ControllerBase
                 mensagem = "Já existe um usuário com esse CPF."
             });
         }
-        // Verifica se a coordenadoria existe.
-        var coordenadoriaExiste = await _context.Coordenadorias
+        // Verifica se a departamento existe.
+        var departamentoExiste = await _context.Departamentos
             .AsNoTracking()
-            .AnyAsync(coordenadoria =>
-                coordenadoria.Id == request.CoordenadoriaId
+            .AnyAsync(departamento =>
+                departamento.Id == request.DepartamentoId
             );
 
-        if (!coordenadoriaExiste)
+        if (!departamentoExiste)
         {
             return BadRequest(new
             {
-                mensagem = "A coordenadoria informada não existe."
+                mensagem = "O departamento informado não existe."
             });
         }
 
-        // Verifica se a área existe.
-        var areaExiste = await _context.Areas
+        // Verifica se a setor existe.
+        var setorExiste = await _context.Setores
             .AsNoTracking()
-            .AnyAsync(area =>
-                area.Id == request.AreaId
+            .AnyAsync(setor =>
+                setor.Id == request.SetorId
             );
 
-        if (!areaExiste)
+        if (!setorExiste)
         {
             return BadRequest(new
             {
-                mensagem = "A área informada não existe."
+                mensagem = "O setor informado não existe."
             });
         }
 
-        // Verifica se a área pertence à coordenadoria informada.
-        var areaValida = await _context.Areas
+        // Verifica se o setor pertence ao departamento informado.
+        var setorValida = await _context.Setores
             .AsNoTracking()
-            .AnyAsync(area =>
-                area.Id == request.AreaId &&
-                area.CoordenadoriaId == request.CoordenadoriaId
+            .AnyAsync(setor =>
+                setor.Id == request.SetorId &&
+                setor.DepartamentoId == request.DepartamentoId
             );
 
-        if (!areaValida)
+        if (!setorValida)
         {
             return BadRequest(new
             {
                 mensagem =
-                    "A área informada não pertence à coordenadoria selecionada."
+                    "O setor informado não pertence ao departamento selecionado."
             });
         }
 
@@ -164,9 +164,9 @@ public class AuthController : ControllerBase
 
             Ramal = request.Ramal.Trim(),
 
-            CoordenadoriaId = request.CoordenadoriaId,
+            DepartamentoId = request.DepartamentoId,
 
-            AreaId = request.AreaId,
+            SetorId = request.SetorId,
 
             Perfil = PerfilUsuario.Padrao,
 

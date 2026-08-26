@@ -1,14 +1,15 @@
 namespace NexoDesk.DTOs;
 
-public class AlterarCoordenadoriaRequest
+public class CriarDepartamentoRequest
 {
     /// <summary>
-    /// Novo nome da coordenadoria.
+    /// Nome da departamento.
     /// </summary>
+
     public string Nome { get; set; } = string.Empty;
 
     /// <summary>
-    /// Nova sigla da coordenadoria.
+    /// Sigla da departamento.
     /// </summary>
     public string Sigla { get; set; } = string.Empty;
 }

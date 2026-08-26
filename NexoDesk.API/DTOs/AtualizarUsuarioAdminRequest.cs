@@ -19,9 +19,9 @@ public class AtualizarUsuarioAdminRequest
     [StringLength(9)]
     public string Ramal { get; set; } = string.Empty;
 
-    [Range(1, int.MaxValue, ErrorMessage = "A coordenadoria deve ser informada.")]
-    public int CoordenadoriaId { get; set; }
+    [Range(1, int.MaxValue, ErrorMessage = "A departamento deve ser informada.")]
+    public int DepartamentoId { get; set; }
 
-    [Range(1, int.MaxValue, ErrorMessage = "A área deve ser informada.")]
-    public int AreaId { get; set; }
+    [Range(1, int.MaxValue, ErrorMessage = "A setor deve ser informada.")]
+    public int SetorId { get; set; }
 }

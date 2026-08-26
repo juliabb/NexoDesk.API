@@ -91,8 +91,8 @@ public class ChamadosController : ControllerBase
             Prioridade = request.Prioridade,
             SolicitanteId = usuario.Id,
             CategoriaId = categoria.Id,
-            AreaSolicitanteId = usuario.AreaId,
-            AreaResponsavelId = categoria.AreaResponsavelId
+            SetorSolicitanteId = usuario.SetorId,
+            SetorResponsavelId = categoria.SetorResponsavelId
         };
 
         _context.Chamados.Add(chamado);
@@ -166,7 +166,7 @@ public class ChamadosController : ControllerBase
                 chamado.Prioridade,
                 chamado.Status,
                 categoria = chamado.Categoria.Nome,
-                areaResponsavel = chamado.AreaResponsavel.Nome,
+                setorResponsavel = chamado.SetorResponsavel.Nome,
                 chamado.CriadoEm,
                 chamado.AtualizadoEm
             })
@@ -186,20 +186,20 @@ public class ChamadosController : ControllerBase
         }
 
         var podeConsultarTodos = User.IsInRole("Administrador");
-        int? coordenadoriaDoGestor = null;
-        int? areaDoAtendente = null;
+        int? departamentoDoGestor = null;
+        int? setorDoAtendente = null;
         if (User.IsInRole("Gestor"))
         {
-            coordenadoriaDoGestor = await _context.Usuarios.AsNoTracking()
+            departamentoDoGestor = await _context.Usuarios.AsNoTracking()
                 .Where(usuario => usuario.Id == usuarioId)
-                .Select(usuario => (int?)usuario.CoordenadoriaId)
+                .Select(usuario => (int?)usuario.DepartamentoId)
                 .FirstOrDefaultAsync();
         }
         else if (User.IsInRole("Atendente"))
         {
-            areaDoAtendente = await _context.Usuarios.AsNoTracking()
+            setorDoAtendente = await _context.Usuarios.AsNoTracking()
                 .Where(usuario => usuario.Id == usuarioId)
-                .Select(usuario => (int?)usuario.AreaId)
+                .Select(usuario => (int?)usuario.SetorId)
                 .FirstOrDefaultAsync();
         }
 
@@ -207,9 +207,9 @@ public class ChamadosController : ControllerBase
             .Where(item => item.Id == id)
             .Where(item => item.SolicitanteId == usuarioId ||
                 podeConsultarTodos ||
-                coordenadoriaDoGestor.HasValue &&
-                item.AreaResponsavel.CoordenadoriaId == coordenadoriaDoGestor.Value ||
-                areaDoAtendente.HasValue && item.AreaResponsavelId == areaDoAtendente.Value)
+                departamentoDoGestor.HasValue &&
+                item.SetorResponsavel.DepartamentoId == departamentoDoGestor.Value ||
+                setorDoAtendente.HasValue && item.SetorResponsavelId == setorDoAtendente.Value)
             .Select(item => new
             {
                 item.Id,
@@ -220,8 +220,8 @@ public class ChamadosController : ControllerBase
                 item.Status,
                 categoria = new { item.Categoria.Id, item.Categoria.Nome },
                 solicitante = new { item.Solicitante.Id, item.Solicitante.NomeCompleto },
-                areaSolicitante = new { item.AreaSolicitante.Id, item.AreaSolicitante.Nome },
-                areaResponsavel = new { item.AreaResponsavel.Id, item.AreaResponsavel.Nome },
+                setorSolicitante = new { item.SetorSolicitante.Id, item.SetorSolicitante.Nome },
+                setorResponsavel = new { item.SetorResponsavel.Id, item.SetorResponsavel.Nome },
                 responsavel = item.Responsavel == null
                     ? null
                     : new { item.Responsavel.Id, item.Responsavel.NomeCompleto },
@@ -242,14 +242,14 @@ public class ChamadosController : ControllerBase
         return Ok(chamado);
     }
 
-    /// <summary>Lista a fila de atendimento da coordenadoria do gestor.</summary>
+    /// <summary>Lista a fila de atendimento da departamento do gestor.</summary>
     [HttpGet("fila")]
     [Authorize(Roles = "Atendente,Gestor,Administrador")]
     [Tags("Triagem de chamados")]
     public async Task<IActionResult> ListarFila(
         [FromQuery] StatusChamado? status,
         [FromQuery] PrioridadeChamado? prioridade,
-        [FromQuery] int? areaResponsavelId,
+        [FromQuery] int? setorResponsavelId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
@@ -279,16 +279,16 @@ public class ChamadosController : ControllerBase
         if (User.IsInRole("Gestor"))
         {
             query = query.Where(chamado =>
-                chamado.AreaResponsavel.CoordenadoriaId == operador.CoordenadoriaId);
+                chamado.SetorResponsavel.DepartamentoId == operador.DepartamentoId);
         }
         else if (User.IsInRole("Atendente"))
         {
-            query = query.Where(chamado => chamado.AreaResponsavelId == operador.AreaId);
+            query = query.Where(chamado => chamado.SetorResponsavelId == operador.SetorId);
         }
 
-        if (areaResponsavelId.HasValue)
+        if (setorResponsavelId.HasValue)
         {
-            query = query.Where(chamado => chamado.AreaResponsavelId == areaResponsavelId.Value);
+            query = query.Where(chamado => chamado.SetorResponsavelId == setorResponsavelId.Value);
         }
 
         if (status.HasValue)
@@ -316,8 +316,8 @@ public class ChamadosController : ControllerBase
                 chamado.Status,
                 categoria = chamado.Categoria.Nome,
                 solicitante = chamado.Solicitante.NomeCompleto,
-                areaSolicitante = chamado.AreaSolicitante.Nome,
-                areaResponsavel = chamado.AreaResponsavel.Nome,
+                setorSolicitante = chamado.SetorSolicitante.Nome,
+                setorResponsavel = chamado.SetorResponsavel.Nome,
                 responsavel = chamado.Responsavel == null ? null : chamado.Responsavel.NomeCompleto,
                 chamado.CriadoEm,
                 chamado.AtualizadoEm
@@ -327,45 +327,45 @@ public class ChamadosController : ControllerBase
         return Ok(new { pagina = page, tamanhoPagina = pageSize, totalRegistros, chamados });
     }
 
-    /// <summary>Lista os atendentes disponíveis em uma área responsável.</summary>
+    /// <summary>Lista os atendentes disponíveis em uma setor responsável.</summary>
     [HttpGet("atendentes")]
     [Authorize(Roles = "Gestor,Administrador")]
     [Tags("Triagem de chamados")]
-    public async Task<IActionResult> ListarAtendentes([FromQuery] int areaResponsavelId)
+    public async Task<IActionResult> ListarAtendentes([FromQuery] int setorResponsavelId)
     {
         if (!TryObterUsuarioId(out var operadorId))
         {
             return Unauthorized();
         }
 
-        var area = await _context.Areas.AsNoTracking()
-            .FirstOrDefaultAsync(item => item.Id == areaResponsavelId);
+        var setor = await _context.Setores.AsNoTracking()
+            .FirstOrDefaultAsync(item => item.Id == setorResponsavelId);
 
-        if (area is null)
+        if (setor is null)
         {
             return Problem(statusCode: StatusCodes.Status404NotFound,
-                title: "Área não encontrada.",
-                detail: $"Não existe uma área com o identificador {areaResponsavelId}.");
+                title: "Setor não encontrada.",
+                detail: $"Não existe uma setor com o identificador {setorResponsavelId}.");
         }
 
         if (!User.IsInRole("Administrador"))
         {
-            var coordenadoriaId = await _context.Usuarios.AsNoTracking()
+            var departamentoId = await _context.Usuarios.AsNoTracking()
                 .Where(usuario => usuario.Id == operadorId)
-                .Select(usuario => (int?)usuario.CoordenadoriaId)
+                .Select(usuario => (int?)usuario.DepartamentoId)
                 .FirstOrDefaultAsync();
 
-            if (coordenadoriaId != area.CoordenadoriaId)
+            if (departamentoId != setor.DepartamentoId)
             {
                 return Problem(statusCode: StatusCodes.Status404NotFound,
-                    title: "Área não encontrada.",
-                    detail: "A área não existe ou não pertence à sua coordenadoria.");
+                    title: "Setor não encontrada.",
+                    detail: "A setor não existe ou não pertence à sua departamento.");
             }
         }
 
         var atendentes = await _context.Usuarios.AsNoTracking()
             .Where(usuario =>
-                usuario.AreaId == areaResponsavelId &&
+                usuario.SetorId == setorResponsavelId &&
                 usuario.Perfil == PerfilUsuario.Atendente &&
                 usuario.Status == StatusUsuario.Aprovado &&
                 usuario.Ativo)
@@ -381,7 +381,7 @@ public class ChamadosController : ControllerBase
         return Ok(atendentes);
     }
 
-    /// <summary>Atribui um responsável da área de atendimento ao chamado.</summary>
+    /// <summary>Atribui um responsável da setor de atendimento ao chamado.</summary>
     [HttpPatch("{id:guid}/responsavel")]
     [Authorize(Roles = "Gestor,Administrador")]
     [Tags("Triagem de chamados")]
@@ -393,7 +393,7 @@ public class ChamadosController : ControllerBase
         }
 
         var chamado = await _context.Chamados
-            .Include(item => item.AreaResponsavel)
+            .Include(item => item.SetorResponsavel)
             .FirstOrDefaultAsync(item => item.Id == id);
 
         if (chamado is null || !await PodeGerenciarAsync(chamado, operadorId))
@@ -411,7 +411,7 @@ public class ChamadosController : ControllerBase
 
         var responsavel = await _context.Usuarios.AsNoTracking().FirstOrDefaultAsync(usuario =>
             usuario.Id == request.ResponsavelId &&
-            usuario.AreaId == chamado.AreaResponsavelId &&
+            usuario.SetorId == chamado.SetorResponsavelId &&
             usuario.Ativo &&
             usuario.Status == StatusUsuario.Aprovado &&
             usuario.Perfil == PerfilUsuario.Atendente);
@@ -420,7 +420,7 @@ public class ChamadosController : ControllerBase
         {
             return Problem(statusCode: StatusCodes.Status400BadRequest,
                 title: "Responsável inválido.",
-                detail: "O responsável deve ser um atendente ativo e aprovado da área responsável pelo chamado.");
+                detail: "O responsável deve ser um atendente ativo e aprovado da setor responsável pelo chamado.");
         }
 
         if (chamado.ResponsavelId == responsavel.Id)
@@ -486,7 +486,7 @@ public class ChamadosController : ControllerBase
         }
 
         var chamado = await _context.Chamados
-            .Include(item => item.AreaResponsavel)
+            .Include(item => item.SetorResponsavel)
             .FirstOrDefaultAsync(item => item.Id == id);
 
         if (chamado is null || !await PodeGerenciarAsync(chamado, operadorId))
@@ -570,7 +570,7 @@ public class ChamadosController : ControllerBase
         }
 
         var chamado = await _context.Chamados.AsNoTracking()
-            .Include(item => item.AreaResponsavel)
+            .Include(item => item.SetorResponsavel)
             .FirstOrDefaultAsync(item => item.Id == id);
 
         var podeConsultar = chamado is not null &&
@@ -620,7 +620,7 @@ public class ChamadosController : ControllerBase
         }
 
         var chamado = await _context.Chamados
-            .Include(item => item.AreaResponsavel)
+            .Include(item => item.SetorResponsavel)
             .FirstOrDefaultAsync(item => item.Id == id);
 
         var fazParteDaEquipe = chamado is not null && await PodeGerenciarAsync(chamado, usuarioId);
@@ -702,7 +702,7 @@ public class ChamadosController : ControllerBase
         }
 
         var chamado = await _context.Chamados.AsNoTracking()
-            .Include(item => item.AreaResponsavel)
+            .Include(item => item.SetorResponsavel)
             .FirstOrDefaultAsync(item => item.Id == id);
 
         var fazParteDaEquipe = chamado is not null && await PodeGerenciarAsync(chamado, usuarioId);
@@ -754,7 +754,7 @@ public class ChamadosController : ControllerBase
         }
 
         var chamado = await _context.Chamados
-            .Include(item => item.AreaResponsavel)
+            .Include(item => item.SetorResponsavel)
             .FirstOrDefaultAsync(item => item.Id == id, cancellationToken);
         var fazParteDaEquipe = chamado is not null && await PodeGerenciarAsync(chamado, usuarioId);
         var ehSolicitante = chamado?.SolicitanteId == usuarioId;
@@ -862,7 +862,7 @@ public class ChamadosController : ControllerBase
         }
 
         var chamado = await _context.Chamados.AsNoTracking()
-            .Include(item => item.AreaResponsavel)
+            .Include(item => item.SetorResponsavel)
             .FirstOrDefaultAsync(item => item.Id == id);
         var fazParteDaEquipe = chamado is not null && await PodeGerenciarAsync(chamado, usuarioId);
         var ehSolicitante = chamado?.SolicitanteId == usuarioId;
@@ -912,7 +912,7 @@ public class ChamadosController : ControllerBase
         }
 
         var chamado = await _context.Chamados.AsNoTracking()
-            .Include(item => item.AreaResponsavel)
+            .Include(item => item.SetorResponsavel)
             .FirstOrDefaultAsync(item => item.Id == id, cancellationToken);
         var fazParteDaEquipe = chamado is not null && await PodeGerenciarAsync(chamado, usuarioId);
         var ehSolicitante = chamado?.SolicitanteId == usuarioId;
@@ -960,21 +960,21 @@ public class ChamadosController : ControllerBase
                 return false;
             }
 
-            var areaId = await _context.Usuarios.AsNoTracking()
+            var setorId = await _context.Usuarios.AsNoTracking()
                 .Where(usuario => usuario.Id == usuarioId)
-                .Select(usuario => (int?)usuario.AreaId)
+                .Select(usuario => (int?)usuario.SetorId)
                 .FirstOrDefaultAsync();
 
-            return areaId.HasValue && chamado.AreaResponsavelId == areaId.Value;
+            return setorId.HasValue && chamado.SetorResponsavelId == setorId.Value;
         }
 
-        var coordenadoriaId = await _context.Usuarios.AsNoTracking()
+        var departamentoId = await _context.Usuarios.AsNoTracking()
             .Where(usuario => usuario.Id == usuarioId)
-            .Select(usuario => (int?)usuario.CoordenadoriaId)
+            .Select(usuario => (int?)usuario.DepartamentoId)
             .FirstOrDefaultAsync();
 
-        return coordenadoriaId.HasValue &&
-            chamado.AreaResponsavel.CoordenadoriaId == coordenadoriaId.Value;
+        return departamentoId.HasValue &&
+            chamado.SetorResponsavel.DepartamentoId == departamentoId.Value;
     }
 
     private static bool TransicaoPermitida(StatusChamado atual, StatusChamado novo) =>

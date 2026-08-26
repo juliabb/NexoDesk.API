@@ -14,10 +14,10 @@ public class Chamado
     public Usuario Solicitante { get; set; } = null!;
     public int CategoriaId { get; set; }
     public CategoriaChamado Categoria { get; set; } = null!;
-    public int AreaSolicitanteId { get; set; }
-    public Area AreaSolicitante { get; set; } = null!;
-    public int AreaResponsavelId { get; set; }
-    public Area AreaResponsavel { get; set; } = null!;
+    public int SetorSolicitanteId { get; set; }
+    public Setor SetorSolicitante { get; set; } = null!;
+    public int SetorResponsavelId { get; set; }
+    public Setor SetorResponsavel { get; set; } = null!;
     public Guid? ResponsavelId { get; set; }
     public Usuario? Responsavel { get; set; }
     public DateTime CriadoEm { get; set; } = DateTime.UtcNow;

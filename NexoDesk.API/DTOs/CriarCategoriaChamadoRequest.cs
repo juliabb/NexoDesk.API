@@ -11,5 +11,5 @@ public class CriarCategoriaChamadoRequest
     public string? Descricao { get; set; }
 
     [Range(1, int.MaxValue)]
-    public int AreaResponsavelId { get; set; }
+    public int SetorResponsavelId { get; set; }
 }

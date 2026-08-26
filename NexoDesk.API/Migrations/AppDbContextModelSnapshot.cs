@@ -72,30 +72,6 @@ namespace NexoDesk.API.Migrations
                     b.ToTable("anexos_chamados", (string)null);
                 });
 
-            modelBuilder.Entity("NexoDesk.Models.Area", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CoordenadoriaId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CoordenadoriaId", "Nome")
-                        .IsUnique();
-
-                    b.ToTable("areas", (string)null);
-                });
-
             modelBuilder.Entity("NexoDesk.Models.AuditoriaUsuario", b =>
                 {
                     b.Property<Guid>("Id")
@@ -139,9 +115,6 @@ namespace NexoDesk.API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AreaResponsavelId")
-                        .HasColumnType("integer");
-
                     b.Property<bool>("Ativa")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -162,12 +135,15 @@ namespace NexoDesk.API.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.HasKey("Id");
+                    b.Property<int>("SetorResponsavelId")
+                        .HasColumnType("integer");
 
-                    b.HasIndex("AreaResponsavelId");
+                    b.HasKey("Id");
 
                     b.HasIndex("Nome")
                         .IsUnique();
+
+                    b.HasIndex("SetorResponsavelId");
 
                     b.ToTable("categorias_chamados", (string)null);
                 });
@@ -177,12 +153,6 @@ namespace NexoDesk.API.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
-
-                    b.Property<int>("AreaResponsavelId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("AreaSolicitanteId")
-                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("AtualizadoEm")
                         .HasColumnType("timestamp with time zone");
@@ -216,6 +186,12 @@ namespace NexoDesk.API.Migrations
                     b.Property<Guid?>("ResponsavelId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("SetorResponsavelId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SetorSolicitanteId")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("SolicitanteId")
                         .HasColumnType("uuid");
 
@@ -230,8 +206,6 @@ namespace NexoDesk.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AreaSolicitanteId");
-
                     b.HasIndex("CategoriaId");
 
                     b.HasIndex("Protocolo")
@@ -239,7 +213,9 @@ namespace NexoDesk.API.Migrations
 
                     b.HasIndex("ResponsavelId");
 
-                    b.HasIndex("AreaResponsavelId", "Status");
+                    b.HasIndex("SetorSolicitanteId");
+
+                    b.HasIndex("SetorResponsavelId", "Status");
 
                     b.HasIndex("SolicitanteId", "CriadoEm");
 
@@ -280,7 +256,7 @@ namespace NexoDesk.API.Migrations
                     b.ToTable("comentarios_chamados", (string)null);
                 });
 
-            modelBuilder.Entity("NexoDesk.Models.Coordenadoria", b =>
+            modelBuilder.Entity("NexoDesk.Models.Departamento", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -306,7 +282,7 @@ namespace NexoDesk.API.Migrations
                     b.HasIndex("Sigla")
                         .IsUnique();
 
-                    b.ToTable("coordenadorias", (string)null);
+                    b.ToTable("departamentos", (string)null);
                 });
 
             modelBuilder.Entity("NexoDesk.Models.HistoricoChamado", b =>
@@ -426,6 +402,30 @@ namespace NexoDesk.API.Migrations
                     b.ToTable("notificacoes", (string)null);
                 });
 
+            modelBuilder.Entity("NexoDesk.Models.Setor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DepartamentoId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DepartamentoId", "Nome")
+                        .IsUnique();
+
+                    b.ToTable("setores", (string)null);
+                });
+
             modelBuilder.Entity("NexoDesk.Models.Usuario", b =>
                 {
                     b.Property<Guid>("Id")
@@ -438,9 +438,6 @@ namespace NexoDesk.API.Migrations
                     b.Property<Guid?>("AprovadoPorUsuarioId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("AreaId")
-                        .HasColumnType("integer");
-
                     b.Property<bool>("Ativo")
                         .HasColumnType("boolean");
 
@@ -450,9 +447,6 @@ namespace NexoDesk.API.Migrations
                     b.Property<DateTime?>("BloqueadoAte")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("CoordenadoriaId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("CpfHash")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -460,6 +454,9 @@ namespace NexoDesk.API.Migrations
 
                     b.Property<DateTime>("CriadoEm")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DepartamentoId")
+                        .HasColumnType("integer");
 
                     b.Property<bool>("DeveAlterarSenha")
                         .ValueGeneratedOnAdd()
@@ -489,6 +486,9 @@ namespace NexoDesk.API.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("SetorId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
@@ -505,15 +505,15 @@ namespace NexoDesk.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AreaId");
-
-                    b.HasIndex("CoordenadoriaId");
-
                     b.HasIndex("CpfHash")
                         .IsUnique();
 
+                    b.HasIndex("DepartamentoId");
+
                     b.HasIndex("EmailCorporativo")
                         .IsUnique();
+
+                    b.HasIndex("SetorId");
 
                     b.ToTable("usuarios", (string)null);
                 });
@@ -537,42 +537,19 @@ namespace NexoDesk.API.Migrations
                     b.Navigation("EnviadoPorUsuario");
                 });
 
-            modelBuilder.Entity("NexoDesk.Models.Area", b =>
-                {
-                    b.HasOne("NexoDesk.Models.Coordenadoria", "Coordenadoria")
-                        .WithMany("Areas")
-                        .HasForeignKey("CoordenadoriaId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Coordenadoria");
-                });
-
             modelBuilder.Entity("NexoDesk.Models.CategoriaChamado", b =>
                 {
-                    b.HasOne("NexoDesk.Models.Area", "AreaResponsavel")
+                    b.HasOne("NexoDesk.Models.Setor", "SetorResponsavel")
                         .WithMany("CategoriasResponsaveis")
-                        .HasForeignKey("AreaResponsavelId")
+                        .HasForeignKey("SetorResponsavelId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("AreaResponsavel");
+                    b.Navigation("SetorResponsavel");
                 });
 
             modelBuilder.Entity("NexoDesk.Models.Chamado", b =>
                 {
-                    b.HasOne("NexoDesk.Models.Area", "AreaResponsavel")
-                        .WithMany("ChamadosResponsaveis")
-                        .HasForeignKey("AreaResponsavelId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("NexoDesk.Models.Area", "AreaSolicitante")
-                        .WithMany("ChamadosSolicitados")
-                        .HasForeignKey("AreaSolicitanteId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("NexoDesk.Models.CategoriaChamado", "Categoria")
                         .WithMany("Chamados")
                         .HasForeignKey("CategoriaId")
@@ -584,19 +561,31 @@ namespace NexoDesk.API.Migrations
                         .HasForeignKey("ResponsavelId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("NexoDesk.Models.Setor", "SetorResponsavel")
+                        .WithMany("ChamadosResponsaveis")
+                        .HasForeignKey("SetorResponsavelId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("NexoDesk.Models.Setor", "SetorSolicitante")
+                        .WithMany("ChamadosSolicitados")
+                        .HasForeignKey("SetorSolicitanteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("NexoDesk.Models.Usuario", "Solicitante")
                         .WithMany("ChamadosSolicitados")
                         .HasForeignKey("SolicitanteId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("AreaResponsavel");
-
-                    b.Navigation("AreaSolicitante");
-
                     b.Navigation("Categoria");
 
                     b.Navigation("Responsavel");
+
+                    b.Navigation("SetorResponsavel");
+
+                    b.Navigation("SetorSolicitante");
 
                     b.Navigation("Solicitante");
                 });
@@ -669,34 +658,34 @@ namespace NexoDesk.API.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("NexoDesk.Models.Usuario", b =>
+            modelBuilder.Entity("NexoDesk.Models.Setor", b =>
                 {
-                    b.HasOne("NexoDesk.Models.Area", "Area")
-                        .WithMany("Usuarios")
-                        .HasForeignKey("AreaId")
+                    b.HasOne("NexoDesk.Models.Departamento", "Departamento")
+                        .WithMany("Setores")
+                        .HasForeignKey("DepartamentoId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("NexoDesk.Models.Coordenadoria", "Coordenadoria")
-                        .WithMany("Usuarios")
-                        .HasForeignKey("CoordenadoriaId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Area");
-
-                    b.Navigation("Coordenadoria");
+                    b.Navigation("Departamento");
                 });
 
-            modelBuilder.Entity("NexoDesk.Models.Area", b =>
+            modelBuilder.Entity("NexoDesk.Models.Usuario", b =>
                 {
-                    b.Navigation("CategoriasResponsaveis");
+                    b.HasOne("NexoDesk.Models.Departamento", "Departamento")
+                        .WithMany("Usuarios")
+                        .HasForeignKey("DepartamentoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                    b.Navigation("ChamadosResponsaveis");
+                    b.HasOne("NexoDesk.Models.Setor", "Setor")
+                        .WithMany("Usuarios")
+                        .HasForeignKey("SetorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                    b.Navigation("ChamadosSolicitados");
+                    b.Navigation("Departamento");
 
-                    b.Navigation("Usuarios");
+                    b.Navigation("Setor");
                 });
 
             modelBuilder.Entity("NexoDesk.Models.CategoriaChamado", b =>
@@ -715,9 +704,20 @@ namespace NexoDesk.API.Migrations
                     b.Navigation("Notificacoes");
                 });
 
-            modelBuilder.Entity("NexoDesk.Models.Coordenadoria", b =>
+            modelBuilder.Entity("NexoDesk.Models.Departamento", b =>
                 {
-                    b.Navigation("Areas");
+                    b.Navigation("Setores");
+
+                    b.Navigation("Usuarios");
+                });
+
+            modelBuilder.Entity("NexoDesk.Models.Setor", b =>
+                {
+                    b.Navigation("CategoriasResponsaveis");
+
+                    b.Navigation("ChamadosResponsaveis");
+
+                    b.Navigation("ChamadosSolicitados");
 
                     b.Navigation("Usuarios");
                 });
