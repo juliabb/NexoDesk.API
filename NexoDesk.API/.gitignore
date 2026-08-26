@@ -1,0 +1,31 @@
+## Visual Studio / .NET Core
+
+# Pastas de compilação (Arquivos gerados ao rodar a API)
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Cache e configurações do Visual Studio e VS Code
+.vs/
+bin/
+obj/
+.vscode/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+
+# Pacotes NuGet
+*.nupkg
+**/packages/
+
+# Arquivos temporários e do Sistema Operacional
+*.tmp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Arquivos contendo dados de conexão sensíveis (se aplicável)
+# Descomente a linha abaixo se colocar dados reais de banco no appsettings local:
+# appsettings.Development.json

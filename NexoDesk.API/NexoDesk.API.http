@@ -1,0 +1,6 @@
+@NexoDesk_API_HostAddress = http://localhost:5199
+
+GET {{NexoDesk_API_HostAddress}}/api/coordenadorias
+Accept: application/json
+
+###
