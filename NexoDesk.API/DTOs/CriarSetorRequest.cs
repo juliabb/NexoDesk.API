@@ -3,7 +3,7 @@ namespace NexoDesk.DTOs;
 public class CriarSetorRequest
 {
     /// <summary>
-    /// Nome da setor.
+    /// Nome do setor.
     /// </summary>
     public string Nome { get; set; } = string.Empty;
 

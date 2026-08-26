@@ -3,13 +3,13 @@ namespace NexoDesk.DTOs;
 public class CriarDepartamentoRequest
 {
     /// <summary>
-    /// Nome da departamento.
+    /// Nome do departamento.
     /// </summary>
 
     public string Nome { get; set; } = string.Empty;
 
     /// <summary>
-    /// Sigla da departamento.
+    /// Sigla do departamento.
     /// </summary>
     public string Sigla { get; set; } = string.Empty;
 }

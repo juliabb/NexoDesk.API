@@ -92,7 +92,8 @@ public class ChamadosController : ControllerBase
             SolicitanteId = usuario.Id,
             CategoriaId = categoria.Id,
             SetorSolicitanteId = usuario.SetorId,
-            SetorResponsavelId = categoria.SetorResponsavelId
+            SetorResponsavelId = categoria.SetorResponsavelId,
+            PrazoResolucaoEm = DateTime.UtcNow.Add(SlaChamadoHelper.ObterPrazoResolucao(request.Prioridade))
         };
 
         _context.Chamados.Add(chamado);
@@ -112,7 +113,8 @@ public class ChamadosController : ControllerBase
             chamado.Titulo,
             chamado.Prioridade,
             chamado.Status,
-            chamado.CriadoEm
+            chamado.CriadoEm,
+            chamado.PrazoResolucaoEm
         });
     }
 
@@ -168,7 +170,9 @@ public class ChamadosController : ControllerBase
                 categoria = chamado.Categoria.Nome,
                 setorResponsavel = chamado.SetorResponsavel.Nome,
                 chamado.CriadoEm,
-                chamado.AtualizadoEm
+                chamado.PrazoResolucaoEm,
+                chamado.AtualizadoEm,
+                chamado.ResolvidoEm
             })
             .ToListAsync();
 
@@ -226,6 +230,7 @@ public class ChamadosController : ControllerBase
                     ? null
                     : new { item.Responsavel.Id, item.Responsavel.NomeCompleto },
                 item.CriadoEm,
+                item.PrazoResolucaoEm,
                 item.AtualizadoEm,
                 item.ResolvidoEm,
                 item.FechadoEm
@@ -242,7 +247,7 @@ public class ChamadosController : ControllerBase
         return Ok(chamado);
     }
 
-    /// <summary>Lista a fila de atendimento da departamento do gestor.</summary>
+    /// <summary>Lista a fila de atendimento do departamento do gestor.</summary>
     [HttpGet("fila")]
     [Authorize(Roles = "Atendente,Gestor,Administrador")]
     [Tags("Triagem de chamados")]
@@ -320,14 +325,16 @@ public class ChamadosController : ControllerBase
                 setorResponsavel = chamado.SetorResponsavel.Nome,
                 responsavel = chamado.Responsavel == null ? null : chamado.Responsavel.NomeCompleto,
                 chamado.CriadoEm,
-                chamado.AtualizadoEm
+                chamado.PrazoResolucaoEm,
+                chamado.AtualizadoEm,
+                chamado.ResolvidoEm
             })
             .ToListAsync();
 
         return Ok(new { pagina = page, tamanhoPagina = pageSize, totalRegistros, chamados });
     }
 
-    /// <summary>Lista os atendentes disponíveis em uma setor responsável.</summary>
+    /// <summary>Lista os atendentes disponíveis em um setor responsável.</summary>
     [HttpGet("atendentes")]
     [Authorize(Roles = "Gestor,Administrador")]
     [Tags("Triagem de chamados")]
@@ -344,8 +351,8 @@ public class ChamadosController : ControllerBase
         if (setor is null)
         {
             return Problem(statusCode: StatusCodes.Status404NotFound,
-                title: "Setor não encontrada.",
-                detail: $"Não existe uma setor com o identificador {setorResponsavelId}.");
+                title: "Setor não encontrado.",
+                detail: $"Não existe um setor com o identificador {setorResponsavelId}.");
         }
 
         if (!User.IsInRole("Administrador"))
@@ -358,8 +365,8 @@ public class ChamadosController : ControllerBase
             if (departamentoId != setor.DepartamentoId)
             {
                 return Problem(statusCode: StatusCodes.Status404NotFound,
-                    title: "Setor não encontrada.",
-                    detail: "A setor não existe ou não pertence à sua departamento.");
+                    title: "Setor não encontrado.",
+                    detail: "O setor não existe ou não pertence ao seu departamento.");
             }
         }
 
@@ -381,7 +388,7 @@ public class ChamadosController : ControllerBase
         return Ok(atendentes);
     }
 
-    /// <summary>Atribui um responsável da setor de atendimento ao chamado.</summary>
+    /// <summary>Atribui um responsável do setor de atendimento ao chamado.</summary>
     [HttpPatch("{id:guid}/responsavel")]
     [Authorize(Roles = "Gestor,Administrador")]
     [Tags("Triagem de chamados")]
@@ -420,7 +427,7 @@ public class ChamadosController : ControllerBase
         {
             return Problem(statusCode: StatusCodes.Status400BadRequest,
                 title: "Responsável inválido.",
-                detail: "O responsável deve ser um atendente ativo e aprovado da setor responsável pelo chamado.");
+                detail: "O responsável deve ser um atendente ativo e aprovado do setor responsável pelo chamado.");
         }
 
         if (chamado.ResponsavelId == responsavel.Id)

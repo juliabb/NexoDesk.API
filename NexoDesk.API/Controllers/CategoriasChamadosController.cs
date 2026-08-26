@@ -62,8 +62,8 @@ public class CategoriasChamadosController : ControllerBase
         if (!setorExiste)
         {
             return Problem(statusCode: StatusCodes.Status404NotFound,
-                title: "Setor responsável não encontrada.",
-                detail: $"Não existe uma setor com o identificador {request.SetorResponsavelId}.");
+                title: "Setor responsável não encontrado.",
+                detail: $"Não existe um setor com o identificador {request.SetorResponsavelId}.");
         }
 
         var nomeEmUso = await _context.CategoriasChamados
@@ -114,8 +114,8 @@ public class CategoriasChamadosController : ControllerBase
         if (!setorExiste)
         {
             return Problem(statusCode: StatusCodes.Status404NotFound,
-                title: "Setor responsável não encontrada.",
-                detail: $"Não existe uma setor com o identificador {request.SetorResponsavelId}.");
+                title: "Setor responsável não encontrado.",
+                detail: $"Não existe um setor com o identificador {request.SetorResponsavelId}.");
         }
 
         var nome = request.Nome.Trim();

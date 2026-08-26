@@ -37,6 +37,7 @@ infraestrutura e compras.
 - Caixa paginada, contador de não lidas e confirmação de leitura
 - Anexos públicos e internos com download protegido por autorização
 - Armazenamento de anexos no Cloudflare R2 com limite de 10 MB
+- Prazo de resolução e indicador de SLA por prioridade
 
 ## Fluxo dos chamados
 
@@ -54,7 +55,7 @@ departamento e administradores podem operar todas as filas.
 
 ## Próxima etapa
 
-Implementar indicadores de prazo e SLA do fluxo de atendimento.
+Implementar relatórios e indicadores gerenciais de atendimento.
 
 ## Deploy no Render
 

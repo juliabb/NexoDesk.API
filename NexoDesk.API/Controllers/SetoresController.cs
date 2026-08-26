@@ -20,7 +20,7 @@ public class SetoresController : ControllerBase
     }
 
     /// <summary>
-    /// Cadastra uma nova setor vinculada a uma departamento.
+    /// Cadastra um novo setor vinculado a um departamento.
     /// </summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
@@ -36,7 +36,7 @@ public class SetoresController : ControllerBase
             return Problem(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "Dados inválidos.",
-                detail: "Informe o nome da setor.");
+                detail: "Informe o nome do setor.");
         }
 
         var departamento = await _context.Departamentos
@@ -47,8 +47,8 @@ public class SetoresController : ControllerBase
         {
             return Problem(
                 statusCode: StatusCodes.Status404NotFound,
-                title: "Departamento não encontrada.",
-                detail: $"Não existe uma departamento com o identificador {request.DepartamentoId}.");
+                title: "Departamento não encontrado.",
+                detail: $"Não existe um departamento com o identificador {request.DepartamentoId}.");
         }
 
         var nome = request.Nome.Trim();
@@ -62,8 +62,8 @@ public class SetoresController : ControllerBase
         {
             return Problem(
                 statusCode: StatusCodes.Status409Conflict,
-                title: "Setor duplicada.",
-                detail: $"Já existe uma setor chamada \"{nome}\" nessa departamento.");
+                title: "Setor duplicado.",
+                detail: $"Já existe um setor chamado \"{nome}\" nesse departamento.");
         }
 
         var setor = new Setor
@@ -87,7 +87,7 @@ public class SetoresController : ControllerBase
     }
 
     /// <summary>
-    /// Altera uma setor e sua departamento.
+    /// Altera um setor e seu departamento.
     /// </summary>
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -104,7 +104,7 @@ public class SetoresController : ControllerBase
             return Problem(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "Dados inválidos.",
-                detail: "Informe o nome da setor.");
+                detail: "Informe o nome do setor.");
         }
 
         var setor = await _context.Setores
@@ -115,8 +115,8 @@ public class SetoresController : ControllerBase
         {
             return Problem(
                 statusCode: StatusCodes.Status404NotFound,
-                title: "Setor não encontrada.",
-                detail: $"Não existe uma setor com o identificador {id}.");
+                title: "Setor não encontrado.",
+                detail: $"Não existe um setor com o identificador {id}.");
         }
 
         var departamentoExiste =
@@ -128,8 +128,8 @@ public class SetoresController : ControllerBase
         {
             return Problem(
                 statusCode: StatusCodes.Status404NotFound,
-                title: "Departamento não encontrada.",
-                detail: $"Não existe uma departamento com o identificador {request.DepartamentoId}.");
+                title: "Departamento não encontrado.",
+                detail: $"Não existe um departamento com o identificador {request.DepartamentoId}.");
         }
 
         var nome = request.Nome.Trim();
@@ -144,8 +144,8 @@ public class SetoresController : ControllerBase
         {
             return Problem(
                 statusCode: StatusCodes.Status409Conflict,
-                title: "Setor duplicada.",
-                detail: $"Já existe uma setor chamada \"{nome}\" nessa departamento.");
+                title: "Setor duplicado.",
+                detail: $"Já existe um setor chamado \"{nome}\" nesse departamento.");
         }
 
         setor.Nome = nome;
@@ -155,7 +155,7 @@ public class SetoresController : ControllerBase
 
         return Ok(new
         {
-            mensagem = "Setor alterada com sucesso.",
+            mensagem = "Setor alterado com sucesso.",
             setor.Id,
             setor.Nome,
             setor.DepartamentoId
@@ -163,7 +163,7 @@ public class SetoresController : ControllerBase
     }
 
     /// <summary>
-    /// Exclui uma setor.
+    /// Exclui um setor.
     /// </summary>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -180,8 +180,8 @@ public class SetoresController : ControllerBase
         {
             return Problem(
                 statusCode: StatusCodes.Status404NotFound,
-                title: "Setor não encontrada.",
-                detail: $"Não existe uma setor com o identificador {id}.");
+                title: "Setor não encontrado.",
+                detail: $"Não existe um setor com o identificador {id}.");
         }
 
         // Verifica se existem usuários vinculados.
@@ -192,8 +192,8 @@ public class SetoresController : ControllerBase
         {
             return Problem(
                 statusCode: StatusCodes.Status409Conflict,
-                title: "Não foi possível excluir a setor.",
-                detail: $"A setor \"{setor.Nome}\" possui {quantidadeUsuarios} usuário(s) vinculado(s). Transfira esses usuários para outra setor antes de excluí-la.");
+                title: "Não foi possível excluir o setor.",
+                detail: $"O setor \"{setor.Nome}\" possui {quantidadeUsuarios} usuário(s) vinculado(s). Transfira esses usuários para outro setor antes de excluí-lo.");
         }
 
         _context.Setores.Remove(setor);
@@ -226,8 +226,8 @@ public class SetoresController : ControllerBase
         {
             return Problem(
                 statusCode: StatusCodes.Status404NotFound,
-                title: "Departamento não encontrada.",
-                detail: $"Não existe uma departamento com o identificador {departamentoId}.");
+                title: "Departamento não encontrado.",
+                detail: $"Não existe um departamento com o identificador {departamentoId}.");
         }
 
         var query = _context.Setores
@@ -244,12 +244,12 @@ public class SetoresController : ControllerBase
         // Sem paginação, preserva o contrato usado nos formulários de cadastro.
         if (!page.HasValue && !pageSize.HasValue)
         {
-            var todasAsSetores = await query
+            var todosOsSetores = await query
                 .OrderBy(setor => setor.Nome)
                 .Select(setor => new { setor.Id, setor.Nome })
                 .ToListAsync();
 
-            return Ok(todasAsSetores);
+            return Ok(todosOsSetores);
         }
 
         var pagina = Math.Max(1, page ?? 1);

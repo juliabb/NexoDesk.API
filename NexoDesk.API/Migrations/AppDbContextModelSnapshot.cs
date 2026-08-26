@@ -171,6 +171,9 @@ namespace NexoDesk.API.Migrations
                     b.Property<DateTime?>("FechadoEm")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime>("PrazoResolucaoEm")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Prioridade")
                         .IsRequired()
                         .HasColumnType("text");

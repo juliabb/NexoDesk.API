@@ -21,6 +21,7 @@ public class Chamado
     public Guid? ResponsavelId { get; set; }
     public Usuario? Responsavel { get; set; }
     public DateTime CriadoEm { get; set; } = DateTime.UtcNow;
+    public DateTime PrazoResolucaoEm { get; set; }
     public DateTime? AtualizadoEm { get; set; }
     public DateTime? ResolvidoEm { get; set; }
     public DateTime? FechadoEm { get; set; }

@@ -224,6 +224,7 @@ public class AppDbContext : DbContext
             entity.Property(chamado => chamado.Prioridade).IsRequired();
             entity.Property(chamado => chamado.Status).IsRequired();
             entity.Property(chamado => chamado.CriadoEm).IsRequired();
+            entity.Property(chamado => chamado.PrazoResolucaoEm).IsRequired();
             entity.HasIndex(chamado => chamado.Protocolo).IsUnique();
             entity.HasIndex(chamado => new { chamado.SolicitanteId, chamado.CriadoEm });
             entity.HasIndex(chamado => new { chamado.SetorResponsavelId, chamado.Status });

@@ -21,7 +21,7 @@ public class DepartamentosController : ControllerBase
     }
 
     /// <summary>
-    /// Cadastra uma departamento.
+    /// Cadastra um departamento.
     /// </summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
@@ -34,7 +34,7 @@ public class DepartamentosController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Nome) || string.IsNullOrWhiteSpace(request.Sigla))
         {
             return Problem(statusCode: StatusCodes.Status400BadRequest,
-                title: "Dados inválidos.", detail: "Informe o nome e a sigla da departamento.");
+                title: "Dados inválidos.", detail: "Informe o nome e a sigla do departamento.");
         }
 
         var nome = request.Nome.Trim();
@@ -51,9 +51,9 @@ public class DepartamentosController : ControllerBase
         if (existeNome || existeSigla)
         {
             return Problem(statusCode: StatusCodes.Status409Conflict,
-                title: "Departamento duplicada.", detail: existeNome
-                    ? $"Já existe uma departamento chamada \"{nome}\"."
-                    : $"Já existe uma departamento com a sigla \"{sigla}\".");
+                title: "Departamento duplicado.", detail: existeNome
+                    ? $"Já existe um departamento chamado \"{nome}\"."
+                    : $"Já existe um departamento com a sigla \"{sigla}\".");
         }
 
         var departamento = new Departamento
@@ -78,7 +78,7 @@ public class DepartamentosController : ControllerBase
     }
 
     /// <summary>
-    /// Altera o nome de uma departamento.
+    /// Altera um departamento.
     /// </summary>
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -93,7 +93,7 @@ public class DepartamentosController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Nome) || string.IsNullOrWhiteSpace(request.Sigla))
         {
             return Problem(statusCode: StatusCodes.Status400BadRequest,
-                title: "Dados inválidos.", detail: "Informe o nome e a sigla da departamento.");
+                title: "Dados inválidos.", detail: "Informe o nome e a sigla do departamento.");
         }
 
         var departamento = await _context.Departamentos
@@ -103,7 +103,7 @@ public class DepartamentosController : ControllerBase
         if (departamento == null)
         {
             return Problem(statusCode: StatusCodes.Status404NotFound,
-                title: "Departamento não encontrada.", detail: $"Não existe uma departamento com o identificador {id}.");
+                title: "Departamento não encontrado.", detail: $"Não existe um departamento com o identificador {id}.");
         }
 
         var nome = request.Nome.Trim();
@@ -120,9 +120,9 @@ public class DepartamentosController : ControllerBase
         if (existeNome || existeSigla)
         {
             return Problem(statusCode: StatusCodes.Status409Conflict,
-                title: "Departamento duplicada.", detail: existeNome
-                    ? $"Já existe uma departamento chamada \"{nome}\"."
-                    : $"Já existe uma departamento com a sigla \"{sigla}\".");
+                title: "Departamento duplicado.", detail: existeNome
+                    ? $"Já existe um departamento chamado \"{nome}\"."
+                    : $"Já existe um departamento com a sigla \"{sigla}\".");
         }
 
         departamento.Nome = nome;
@@ -132,7 +132,7 @@ public class DepartamentosController : ControllerBase
 
         return Ok(new
         {
-            mensagem = "Departamento alterada com sucesso.",
+            mensagem = "Departamento alterado com sucesso.",
             departamento.Id,
             departamento.Nome,
             departamento.Sigla
@@ -140,7 +140,7 @@ public class DepartamentosController : ControllerBase
     }
 
     /// <summary>
-    /// Exclui uma departamento.
+    /// Exclui um departamento.
     /// </summary>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -156,7 +156,7 @@ public class DepartamentosController : ControllerBase
         if (departamento == null)
         {
             return Problem(statusCode: StatusCodes.Status404NotFound,
-                title: "Departamento não encontrada.", detail: $"Não existe uma departamento com o identificador {id}.");
+                title: "Departamento não encontrado.", detail: $"Não existe um departamento com o identificador {id}.");
         }
 
         // Verifica se existem setores vinculados.
@@ -166,7 +166,7 @@ public class DepartamentosController : ControllerBase
         if (quantidadeSetores > 0)
         {
             return Problem(statusCode: StatusCodes.Status409Conflict,
-                title: "Não foi possível excluir a departamento.",
+                title: "Não foi possível excluir o departamento.",
                 detail: $"O departamento \"{departamento.Nome}\" possui {quantidadeSetores} setor(es) vinculado(s). Exclua ou transfira esses setores antes de excluir o departamento.");
         }
 
@@ -177,8 +177,8 @@ public class DepartamentosController : ControllerBase
         if (quantidadeUsuarios > 0)
         {
             return Problem(statusCode: StatusCodes.Status409Conflict,
-                title: "Não foi possível excluir a departamento.",
-                detail: $"A departamento \"{departamento.Nome}\" possui {quantidadeUsuarios} usuário(s) vinculado(s). Transfira esses usuários antes de excluir a departamento.");
+                title: "Não foi possível excluir o departamento.",
+                detail: $"O departamento \"{departamento.Nome}\" possui {quantidadeUsuarios} usuário(s) vinculado(s). Transfira esses usuários antes de excluir o departamento.");
         }
 
         _context.Departamentos.Remove(departamento);
