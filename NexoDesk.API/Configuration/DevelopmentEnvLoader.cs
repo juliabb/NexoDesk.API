@@ -137,6 +137,21 @@ public static class DevelopmentEnvLoader
         var database = Uri.UnescapeDataString(uri.AbsolutePath.TrimStart('/'));
         var port = uri.IsDefaultPort ? 5432 : uri.Port;
 
-        return $"Host={uri.Host};Port={port};Database={database};Username={username};Password={password}";
+        var connectionString =
+            $"Host={uri.Host};Port={port};Database={database};Username={username};Password={password}";
+
+        // URLs do Neon incluem sslmode=require. Bancos locais normalmente não
+        // habilitam SSL, então só o tornamos obrigatório quando a URL solicitar.
+        var sslObrigatorio = uri.Query
+            .TrimStart('?')
+            .Split('&', StringSplitOptions.RemoveEmptyEntries)
+            .Select(parameter => parameter.Split('=', 2))
+            .Any(parts => parts.Length == 2 &&
+                parts[0].Equals("sslmode", StringComparison.OrdinalIgnoreCase) &&
+                parts[1].Equals("require", StringComparison.OrdinalIgnoreCase));
+
+        return sslObrigatorio
+            ? $"{connectionString};SSL Mode=Require"
+            : connectionString;
     }
 }
