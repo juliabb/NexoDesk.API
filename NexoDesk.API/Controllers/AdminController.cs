@@ -18,12 +18,20 @@ public class AdminController : ControllerBase
     private readonly AppDbContext _context;
     private readonly IAuditoriaUsuarioService _auditoria;
     private readonly IPasswordHasher<Usuario> _passwordHasher;
+    private readonly string? _systemOwnerEmail;
 
-    public AdminController(AppDbContext context, IAuditoriaUsuarioService auditoria, IPasswordHasher<Usuario> passwordHasher)
+    public AdminController(
+        AppDbContext context,
+        IAuditoriaUsuarioService auditoria,
+        IPasswordHasher<Usuario> passwordHasher,
+        IConfiguration configuration)
     {
         _context = context;
         _auditoria = auditoria;
         _passwordHasher = passwordHasher;
+        _systemOwnerEmail = configuration["SystemOwner:Email"]?
+            .Trim()
+            .ToLowerInvariant();
     }
 
     [Authorize(Roles = "Administrador")]
@@ -32,6 +40,7 @@ public class AdminController : ControllerBase
     {
         var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.EmailCorporativo == email.Trim().ToLowerInvariant());
         if (usuario is null) return NotFound(new { mensagem = "Usuário não encontrado." });
+        if (EhProprietarioDoSistema(usuario)) return ContaProprietariaProtegida();
 
         var historico = await _context.HistoricosSenhas
             .Where(h => h.UsuarioId == usuario.Id)
@@ -138,6 +147,11 @@ public class AdminController : ControllerBase
         if (usuario is null)
         {
             return NotFound(new { mensagem = "Usuário não encontrado." });
+        }
+
+        if (EhProprietarioDoSistema(usuario))
+        {
+            return ContaProprietariaProtegida();
         }
 
         var emailEmUso = await _context.Usuarios
@@ -257,6 +271,12 @@ public class AdminController : ControllerBase
             {
                 mensagem = "Usuário não encontrado."
             });
+        }
+
+
+        if (EhProprietarioDoSistema(usuario))
+        {
+            return ContaProprietariaProtegida();
         }
 
         var statusAnterior = usuario.Status;
@@ -423,6 +443,12 @@ public class AdminController : ControllerBase
             {
                 mensagem = "Usuário não encontrado."
             });
+        }
+
+
+        if (EhProprietarioDoSistema(usuario))
+        {
+            return ContaProprietariaProtegida();
         }
 
         var perfilAnterior = usuario.Perfil;
@@ -839,6 +865,22 @@ public class AdminController : ControllerBase
             totalRegistros,
             totalPaginas,
             usuarios
+        });
+    }
+
+    private bool EhProprietarioDoSistema(Usuario usuario)
+    {
+        return !string.IsNullOrWhiteSpace(_systemOwnerEmail) &&
+            usuario.EmailCorporativo.Equals(
+                _systemOwnerEmail,
+                StringComparison.OrdinalIgnoreCase);
+    }
+
+    private ObjectResult ContaProprietariaProtegida()
+    {
+        return StatusCode(StatusCodes.Status403Forbidden, new
+        {
+            mensagem = "A conta proprietária do sistema é protegida e não pode ser alterada por operações administrativas."
         });
     }
 }

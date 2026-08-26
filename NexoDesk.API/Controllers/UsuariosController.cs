@@ -18,15 +18,20 @@ public class UsuariosController : ControllerBase
     private readonly AppDbContext _context;
     private readonly IPasswordHasher<Usuario> _passwordHasher;
     private readonly IAuditoriaUsuarioService _auditoria;
+    private readonly string? _systemOwnerEmail;
 
     public UsuariosController(
         AppDbContext context,
         IPasswordHasher<Usuario> passwordHasher,
-        IAuditoriaUsuarioService auditoria)
+        IAuditoriaUsuarioService auditoria,
+        IConfiguration configuration)
     {
         _context = context;
         _passwordHasher = passwordHasher;
         _auditoria = auditoria;
+        _systemOwnerEmail = configuration["SystemOwner:Email"]?
+            .Trim()
+            .ToLowerInvariant();
     }
 
     [HttpPut("me/senha")]
@@ -94,6 +99,17 @@ public class UsuariosController : ControllerBase
         }
 
         var emailCorporativo = request.EmailCorporativo.Trim().ToLowerInvariant();
+
+        if (!string.IsNullOrWhiteSpace(_systemOwnerEmail) &&
+            usuario.EmailCorporativo.Equals(_systemOwnerEmail, StringComparison.OrdinalIgnoreCase) &&
+            !emailCorporativo.Equals(_systemOwnerEmail, StringComparison.OrdinalIgnoreCase))
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                mensagem = "O e-mail da conta proprietária do sistema não pode ser alterado."
+            });
+        }
+
         var emailEmUso = await _context.Usuarios
             .AnyAsync(u => u.Id != usuarioId &&
                            u.EmailCorporativo == emailCorporativo);

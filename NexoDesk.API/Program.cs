@@ -71,7 +71,22 @@ builder.Services.AddScoped<
 >();
 builder.Services.AddScoped<IAuditoriaUsuarioService, AuditoriaUsuarioService>();
 builder.Services.AddScoped<INotificacaoService, NotificacaoService>();
-builder.Services.AddSingleton<IAnexoStorageService, AnexoStorageService>();
+var r2Configured = new[]
+{
+    builder.Configuration["R2:AccessKeyId"],
+    builder.Configuration["R2:SecretAccessKey"],
+    builder.Configuration["R2:Endpoint"],
+    builder.Configuration["R2:BucketName"]
+}.All(value => !string.IsNullOrWhiteSpace(value));
+
+if (r2Configured)
+{
+    builder.Services.AddSingleton<IAnexoStorageService, R2AnexoStorageService>();
+}
+else
+{
+    builder.Services.AddSingleton<IAnexoStorageService, AnexoStorageService>();
+}
 
 var cpfHmacKey = builder.Configuration["Security:CpfHmacKey"];
 if (string.IsNullOrWhiteSpace(cpfHmacKey) || Encoding.UTF8.GetByteCount(cpfHmacKey) < 32)

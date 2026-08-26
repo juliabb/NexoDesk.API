@@ -31,7 +31,12 @@ public static class DevelopmentEnvLoader
                 "JWT_ISSUER",
                 "JWT_AUDIENCE",
                 "JWT_EXPIRATION_MINUTES",
-                "CPF_HMAC_KEY"
+                "CPF_HMAC_KEY",
+                "SYSTEM_OWNER_EMAIL",
+                "R2_ACCESS_KEY_ID",
+                "R2_SECRET_ACCESS_KEY",
+                "R2_ENDPOINT",
+                "R2_BUCKET_NAME"
             };
 
             values = supportedKeys
@@ -63,6 +68,17 @@ public static class DevelopmentEnvLoader
         {
             configuration["Jwt:ExpirationInMinutes"] = expirationMinutes.ToString(CultureInfo.InvariantCulture);
         }
+
+        if (values.TryGetValue("SYSTEM_OWNER_EMAIL", out var ownerEmail) &&
+            !string.IsNullOrWhiteSpace(ownerEmail))
+        {
+            configuration["SystemOwner:Email"] = ownerEmail.Trim().ToLowerInvariant();
+        }
+
+        MapOptional(values, configuration, "R2_ACCESS_KEY_ID", "R2:AccessKeyId");
+        MapOptional(values, configuration, "R2_SECRET_ACCESS_KEY", "R2:SecretAccessKey");
+        MapOptional(values, configuration, "R2_ENDPOINT", "R2:Endpoint");
+        MapOptional(values, configuration, "R2_BUCKET_NAME", "R2:BucketName");
 
         builder.Configuration.AddInMemoryCollection(configuration);
     }
@@ -113,6 +129,19 @@ public static class DevelopmentEnvLoader
         }
 
         return value;
+    }
+
+    private static void MapOptional(
+        IReadOnlyDictionary<string, string> values,
+        IDictionary<string, string?> configuration,
+        string environmentKey,
+        string configurationKey)
+    {
+        if (values.TryGetValue(environmentKey, out var value) &&
+            !string.IsNullOrWhiteSpace(value))
+        {
+            configuration[configurationKey] = value.Trim();
+        }
     }
 
     private static string ConverterDatabaseUrl(string databaseUrl)
