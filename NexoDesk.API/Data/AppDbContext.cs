@@ -222,6 +222,11 @@ public class AppDbContext : DbContext
             entity.Property(chamado => chamado.Titulo).HasMaxLength(150).IsRequired();
             entity.Property(chamado => chamado.Descricao).HasMaxLength(4000).IsRequired();
             entity.Property(chamado => chamado.Prioridade).IsRequired();
+            entity.Property(chamado => chamado.Impacto).IsRequired();
+            entity.Property(chamado => chamado.Urgencia).IsRequired();
+            entity.Property(chamado => chamado.Localizacao).HasMaxLength(150);
+            entity.Property(chamado => chamado.PatrimonioEquipamento).HasMaxLength(100);
+            entity.Property(chamado => chamado.ContatoPreferencial).HasMaxLength(200);
             entity.Property(chamado => chamado.Status).IsRequired();
             entity.Property(chamado => chamado.CriadoEm).IsRequired();
             entity.Property(chamado => chamado.PrazoResolucaoEm).IsRequired();

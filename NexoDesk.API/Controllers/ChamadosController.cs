@@ -53,10 +53,11 @@ public class ChamadosController : ControllerBase
             return Unauthorized();
         }
 
-        if (!Enum.IsDefined(request.Prioridade))
+        if (!Enum.IsDefined(request.Impacto) || !Enum.IsDefined(request.Urgencia))
         {
             return Problem(statusCode: StatusCodes.Status400BadRequest,
-                title: "Prioridade inválida.", detail: "Informe uma prioridade válida para o chamado.");
+                title: "Impacto ou urgência inválidos.",
+                detail: "Informe valores válidos para o impacto e a urgência do chamado.");
         }
 
         var usuario = await _context.Usuarios.AsNoTracking()
@@ -84,17 +85,25 @@ public class ChamadosController : ControllerBase
                 detail: "Essa categoria está inativa e não aceita novos chamados.");
         }
 
+        var agora = DateTime.UtcNow;
+        var prioridade = SlaChamadoHelper.CalcularPrioridade(request.Impacto, request.Urgencia);
         var chamado = new Chamado
         {
             Protocolo = GerarProtocolo(),
             Titulo = request.Titulo.Trim(),
             Descricao = request.Descricao.Trim(),
-            Prioridade = request.Prioridade,
+            Prioridade = prioridade,
+            Impacto = request.Impacto,
+            Urgencia = request.Urgencia,
+            Localizacao = NormalizarObservacao(request.Localizacao),
+            PatrimonioEquipamento = NormalizarObservacao(request.PatrimonioEquipamento),
+            ContatoPreferencial = NormalizarObservacao(request.ContatoPreferencial),
             SolicitanteId = usuario.Id,
             CategoriaId = categoria.Id,
             SetorSolicitanteId = usuario.SetorId,
             SetorResponsavelId = categoria.SetorResponsavelId,
-            PrazoResolucaoEm = DateTime.UtcNow.Add(SlaChamadoHelper.ObterPrazoResolucao(request.Prioridade))
+            CriadoEm = agora,
+            PrazoResolucaoEm = agora.Add(SlaChamadoHelper.ObterPrazoResolucao(prioridade))
         };
 
         _context.Chamados.Add(chamado);
@@ -222,6 +231,11 @@ public class ChamadosController : ControllerBase
                 item.Titulo,
                 item.Descricao,
                 item.Prioridade,
+                item.Impacto,
+                item.Urgencia,
+                item.Localizacao,
+                item.PatrimonioEquipamento,
+                item.ContatoPreferencial,
                 item.Status,
                 categoria = new { item.Categoria.Id, item.Categoria.Nome },
                 solicitante = new { item.Solicitante.Id, item.Solicitante.NomeCompleto },
@@ -473,6 +487,76 @@ public class ChamadosController : ControllerBase
             chamado.Protocolo,
             chamado.Status,
             responsavel = new { responsavel.Id, responsavel.NomeCompleto }
+        });
+    }
+
+    /// <summary>Confirma ou altera a prioridade durante a triagem.</summary>
+    [HttpPatch("{id:guid}/prioridade")]
+    [Authorize(Roles = "Atendente,Gestor,Administrador")]
+    [Tags("Triagem de chamados")]
+    public async Task<IActionResult> AlterarPrioridade(
+        Guid id,
+        [FromBody] AlterarPrioridadeChamadoRequest request)
+    {
+        if (!TryObterUsuarioId(out var operadorId))
+        {
+            return Unauthorized();
+        }
+
+        if (!Enum.IsDefined(request.Prioridade))
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: "Prioridade inválida.", detail: "Informe uma prioridade válida para o chamado.");
+        }
+
+        var chamado = await _context.Chamados
+            .Include(item => item.SetorResponsavel)
+            .FirstOrDefaultAsync(item => item.Id == id);
+
+        if (chamado is null || !await PodeGerenciarAsync(chamado, operadorId))
+        {
+            return Problem(statusCode: StatusCodes.Status404NotFound,
+                title: "Chamado não encontrado.",
+                detail: "O chamado não existe ou você não possui acesso à sua fila de atendimento.");
+        }
+
+        if (chamado.Status is StatusChamado.Fechado or StatusChamado.Cancelado)
+        {
+            return Problem(statusCode: StatusCodes.Status409Conflict,
+                title: "Chamado encerrado.", detail: "Não é possível alterar a prioridade de um chamado encerrado.");
+        }
+
+        var prioridadeAnterior = chamado.Prioridade;
+        if (prioridadeAnterior == request.Prioridade)
+        {
+            return Problem(statusCode: StatusCodes.Status409Conflict,
+                title: "Prioridade já definida.", detail: "O chamado já possui a prioridade informada.");
+        }
+
+        chamado.Prioridade = request.Prioridade;
+        chamado.PrazoResolucaoEm = chamado.CriadoEm.Add(
+            SlaChamadoHelper.ObterPrazoResolucao(request.Prioridade));
+        chamado.AtualizadoEm = DateTime.UtcNow;
+        var justificativa = NormalizarObservacao(request.Justificativa);
+        _context.HistoricosChamados.Add(new HistoricoChamado
+        {
+            ChamadoId = chamado.Id,
+            Acao = "Prioridade alterada",
+            StatusAnterior = chamado.Status,
+            StatusNovo = chamado.Status,
+            ResponsavelAnteriorId = chamado.ResponsavelId,
+            ResponsavelNovoId = chamado.ResponsavelId,
+            RealizadoPorUsuarioId = operadorId,
+            Observacao = $"Prioridade alterada de {prioridadeAnterior} para {request.Prioridade}." +
+                (justificativa is null ? string.Empty : $" {justificativa}")
+        });
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            mensagem = "Prioridade alterada com sucesso.",
+            chamado.Prioridade,
+            chamado.PrazoResolucaoEm
         });
     }
 

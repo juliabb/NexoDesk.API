@@ -9,6 +9,11 @@ public class Chamado
     public string Titulo { get; set; } = string.Empty;
     public string Descricao { get; set; } = string.Empty;
     public PrioridadeChamado Prioridade { get; set; } = PrioridadeChamado.Media;
+    public ImpactoChamado Impacto { get; set; } = ImpactoChamado.Individual;
+    public UrgenciaChamado Urgencia { get; set; } = UrgenciaChamado.PodeAguardar;
+    public string? Localizacao { get; set; }
+    public string? PatrimonioEquipamento { get; set; }
+    public string? ContatoPreferencial { get; set; }
     public StatusChamado Status { get; set; } = StatusChamado.Aberto;
     public Guid SolicitanteId { get; set; }
     public Usuario Solicitante { get; set; } = null!;

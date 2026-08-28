@@ -160,6 +160,10 @@ namespace NexoDesk.API.Migrations
                     b.Property<int>("CategoriaId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("ContatoPreferencial")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<DateTime>("CriadoEm")
                         .HasColumnType("timestamp with time zone");
 
@@ -170,6 +174,18 @@ namespace NexoDesk.API.Migrations
 
                     b.Property<DateTime?>("FechadoEm")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Impacto")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Localizacao")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("PatrimonioEquipamento")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("PrazoResolucaoEm")
                         .HasColumnType("timestamp with time zone");
@@ -206,6 +222,10 @@ namespace NexoDesk.API.Migrations
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
+
+                    b.Property<string>("Urgencia")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 

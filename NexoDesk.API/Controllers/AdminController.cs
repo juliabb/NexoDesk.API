@@ -850,6 +850,9 @@ public class AdminController : ControllerBase
 
                 usuario.Ativo,
 
+                protegido = _systemOwnerEmail != null &&
+                    usuario.EmailCorporativo == _systemOwnerEmail,
+
                 criadoEm =
                     usuario.CriadoEm
                         .ToLocalTime()

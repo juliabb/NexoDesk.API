@@ -14,5 +14,16 @@ public class CriarChamadoRequest
     [Range(1, int.MaxValue)]
     public int CategoriaId { get; set; }
 
-    public PrioridadeChamado Prioridade { get; set; } = PrioridadeChamado.Media;
+    public ImpactoChamado Impacto { get; set; } = ImpactoChamado.Individual;
+
+    public UrgenciaChamado Urgencia { get; set; } = UrgenciaChamado.PodeAguardar;
+
+    [StringLength(150)]
+    public string? Localizacao { get; set; }
+
+    [StringLength(100)]
+    public string? PatrimonioEquipamento { get; set; }
+
+    [StringLength(200)]
+    public string? ContatoPreferencial { get; set; }
 }

@@ -53,10 +53,15 @@ public static class DevelopmentEnvLoader
             }
         }
 
+        var databaseUrlKey = builder.Environment.IsDevelopment() &&
+            values.ContainsKey("LOCAL_DATABASE_URL")
+                ? "LOCAL_DATABASE_URL"
+                : "DATABASE_URL";
+
         var configuration = new Dictionary<string, string?>
         {
             ["ConnectionStrings:DefaultConnection"] = ConverterDatabaseUrl(
-                ObterObrigatorio(values, "DATABASE_URL")),
+                ObterObrigatorio(values, databaseUrlKey)),
             ["Jwt:Key"] = ObterObrigatorio(values, "JWT_SECRET"),
             ["Jwt:Issuer"] = ObterObrigatorio(values, "JWT_ISSUER"),
             ["Jwt:Audience"] = ObterObrigatorio(values, "JWT_AUDIENCE"),

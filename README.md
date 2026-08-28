@@ -69,3 +69,10 @@ Variáveis obrigatórias: `DATABASE_URL`, `JWT_SECRET`, `JWT_ISSUER`,
 Para anexos persistentes, configure também `R2_ACCESS_KEY_ID`,
 `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT` e `R2_BUCKET_NAME`. Sem essas variáveis,
 o armazenamento local é usado somente como alternativa de desenvolvimento.
+
+## Banco local para desenvolvimento
+
+O arquivo `compose.yaml` inicia um PostgreSQL isolado na porta `5433`. Configure
+`LOCAL_DATABASE_URL` conforme o `.env.example` e execute `docker compose up -d`.
+Em Development, a API prioriza essa conexão local e aplica as migrations
+automaticamente. O Render continua utilizando `DATABASE_URL` com o Neon.
