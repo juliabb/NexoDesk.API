@@ -134,6 +134,7 @@ public class ChamadosController : ControllerBase
     public async Task<IActionResult> ListarMeus(
         [FromQuery] StatusChamado? status,
         [FromQuery] PrioridadeChamado? prioridade,
+        [FromQuery] string? termo,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
@@ -163,6 +164,16 @@ public class ChamadosController : ControllerBase
         if (prioridade.HasValue)
         {
             query = query.Where(chamado => chamado.Prioridade == prioridade.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(termo))
+        {
+            var termoNormalizado = termo.Trim().ToLower();
+            query = query.Where(chamado =>
+                chamado.Protocolo.ToLower().Contains(termoNormalizado) ||
+                chamado.Titulo.ToLower().Contains(termoNormalizado) ||
+                chamado.Categoria.Nome.ToLower().Contains(termoNormalizado) ||
+                chamado.SetorResponsavel.Nome.ToLower().Contains(termoNormalizado));
         }
 
         var totalRegistros = await query.CountAsync();
@@ -270,6 +281,8 @@ public class ChamadosController : ControllerBase
         [FromQuery] StatusChamado? status,
         [FromQuery] PrioridadeChamado? prioridade,
         [FromQuery] int? setorResponsavelId,
+        [FromQuery] string? termo,
+        [FromQuery] bool somenteAtivos = false,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
@@ -319,6 +332,24 @@ public class ChamadosController : ControllerBase
         if (prioridade.HasValue)
         {
             query = query.Where(chamado => chamado.Prioridade == prioridade.Value);
+        }
+
+        if (somenteAtivos)
+        {
+            query = query.Where(chamado =>
+                chamado.Status != StatusChamado.Resolvido &&
+                chamado.Status != StatusChamado.Fechado &&
+                chamado.Status != StatusChamado.Cancelado);
+        }
+
+        if (!string.IsNullOrWhiteSpace(termo))
+        {
+            var termoNormalizado = termo.Trim().ToLower();
+            query = query.Where(chamado =>
+                chamado.Protocolo.ToLower().Contains(termoNormalizado) ||
+                chamado.Titulo.ToLower().Contains(termoNormalizado) ||
+                chamado.Categoria.Nome.ToLower().Contains(termoNormalizado) ||
+                chamado.Solicitante.NomeCompleto.ToLower().Contains(termoNormalizado));
         }
 
         var totalRegistros = await query.CountAsync();
