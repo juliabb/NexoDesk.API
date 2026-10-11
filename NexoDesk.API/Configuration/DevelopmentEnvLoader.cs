@@ -33,6 +33,7 @@ public static class DevelopmentEnvLoader
                 "JWT_EXPIRATION_MINUTES",
                 "CPF_HMAC_KEY",
                 "SYSTEM_OWNER_EMAIL",
+                "DEMO_ACCOUNT_EMAIL",
                 "R2_ACCESS_KEY_ID",
                 "R2_SECRET_ACCESS_KEY",
                 "R2_ENDPOINT",
@@ -78,6 +79,12 @@ public static class DevelopmentEnvLoader
             !string.IsNullOrWhiteSpace(ownerEmail))
         {
             configuration["SystemOwner:Email"] = ownerEmail.Trim().ToLowerInvariant();
+        }
+
+        if (values.TryGetValue("DEMO_ACCOUNT_EMAIL", out var demoAccountEmail) &&
+            !string.IsNullOrWhiteSpace(demoAccountEmail))
+        {
+            configuration["DemoAccount:Email"] = demoAccountEmail.Trim().ToLowerInvariant();
         }
 
         MapOptional(values, configuration, "R2_ACCESS_KEY_ID", "R2:AccessKeyId");

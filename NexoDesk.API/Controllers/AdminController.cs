@@ -19,6 +19,7 @@ public class AdminController : ControllerBase
     private readonly IAuditoriaUsuarioService _auditoria;
     private readonly IPasswordHasher<Usuario> _passwordHasher;
     private readonly string? _systemOwnerEmail;
+    private readonly string? _demoAccountEmail;
 
     public AdminController(
         AppDbContext context,
@@ -32,6 +33,9 @@ public class AdminController : ControllerBase
         _systemOwnerEmail = configuration["SystemOwner:Email"]?
             .Trim()
             .ToLowerInvariant();
+        _demoAccountEmail = configuration["DemoAccount:Email"]?
+            .Trim()
+            .ToLowerInvariant();
     }
 
     [Authorize(Roles = "Administrador")]
@@ -40,7 +44,7 @@ public class AdminController : ControllerBase
     {
         var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.EmailCorporativo == email.Trim().ToLowerInvariant());
         if (usuario is null) return NotFound(new { mensagem = "Usuário não encontrado." });
-        if (EhProprietarioDoSistema(usuario)) return ContaProprietariaProtegida();
+        if (EhContaProtegida(usuario)) return ContaProtegida();
 
         var historico = await _context.HistoricosSenhas
             .Where(h => h.UsuarioId == usuario.Id)
@@ -149,9 +153,9 @@ public class AdminController : ControllerBase
             return NotFound(new { mensagem = "Usuário não encontrado." });
         }
 
-        if (EhProprietarioDoSistema(usuario))
+        if (EhContaProtegida(usuario))
         {
-            return ContaProprietariaProtegida();
+            return ContaProtegida();
         }
 
         var emailEmUso = await _context.Usuarios
@@ -274,9 +278,9 @@ public class AdminController : ControllerBase
         }
 
 
-        if (EhProprietarioDoSistema(usuario))
+        if (EhContaProtegida(usuario))
         {
-            return ContaProprietariaProtegida();
+            return ContaProtegida();
         }
 
         var statusAnterior = usuario.Status;
@@ -446,9 +450,9 @@ public class AdminController : ControllerBase
         }
 
 
-        if (EhProprietarioDoSistema(usuario))
+        if (EhContaProtegida(usuario))
         {
-            return ContaProprietariaProtegida();
+            return ContaProtegida();
         }
 
         var perfilAnterior = usuario.Perfil;
@@ -850,8 +854,10 @@ public class AdminController : ControllerBase
 
                 usuario.Ativo,
 
-                protegido = _systemOwnerEmail != null &&
-                    usuario.EmailCorporativo == _systemOwnerEmail,
+                protegido = (_systemOwnerEmail != null &&
+                    usuario.EmailCorporativo == _systemOwnerEmail) ||
+                    (_demoAccountEmail != null &&
+                    usuario.EmailCorporativo == _demoAccountEmail),
 
                 criadoEm =
                     usuario.CriadoEm
@@ -871,19 +877,21 @@ public class AdminController : ControllerBase
         });
     }
 
-    private bool EhProprietarioDoSistema(Usuario usuario)
+    private bool EhContaProtegida(Usuario usuario)
     {
-        return !string.IsNullOrWhiteSpace(_systemOwnerEmail) &&
-            usuario.EmailCorporativo.Equals(
-                _systemOwnerEmail,
-                StringComparison.OrdinalIgnoreCase);
+        return (!string.IsNullOrWhiteSpace(_systemOwnerEmail) &&
+                usuario.EmailCorporativo.Equals(_systemOwnerEmail,
+                    StringComparison.OrdinalIgnoreCase)) ||
+            (!string.IsNullOrWhiteSpace(_demoAccountEmail) &&
+                usuario.EmailCorporativo.Equals(_demoAccountEmail,
+                    StringComparison.OrdinalIgnoreCase));
     }
 
-    private ObjectResult ContaProprietariaProtegida()
+    private ObjectResult ContaProtegida()
     {
         return StatusCode(StatusCodes.Status403Forbidden, new
         {
-            mensagem = "A conta proprietária do sistema é protegida e não pode ser alterada por operações administrativas."
+            mensagem = "Esta conta é protegida e não pode ser alterada por operações administrativas."
         });
     }
 }

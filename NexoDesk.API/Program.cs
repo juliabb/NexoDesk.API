@@ -3,6 +3,7 @@ using NexoDesk.Configuration;
 using NexoDesk.Data;
 using NexoDesk.Helpers;
 using NexoDesk.Models;
+using NexoDesk.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -275,6 +276,10 @@ app.UseHttpsRedirection();
 
 // Autentica o usuário através do JWT.
 app.UseAuthentication();
+
+// Evita que a conta pública de demonstração altere dados administrativos.
+// O bloqueio ocorre no servidor e não pode ser contornado pela interface.
+app.UseMiddleware<DemoAccountGuardMiddleware>();
 
 // Verifica se o usuário possui autorização.
 app.UseAuthorization();

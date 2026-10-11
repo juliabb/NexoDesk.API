@@ -66,6 +66,13 @@ Variáveis obrigatórias: `DATABASE_URL`, `JWT_SECRET`, `JWT_ISSUER`,
 `JWT_AUDIENCE`, `JWT_EXPIRATION_MINUTES`, `CPF_HMAC_KEY` e
 `Database__ApplyMigrations=true`.
 
+Por padrão, `teste@teste.com` é tratada como a conta pública do ambiente de
+demonstração. O endereço pode ser substituído pela variável
+`DEMO_ACCOUNT_EMAIL`. Essa conta poderá consultar a área
+administrativa e operar chamados, mas não poderá alterar usuários, senhas,
+departamentos, setores ou categorias. A própria conta também ficará protegida
+contra alterações realizadas por outros administradores.
+
 Para anexos persistentes, configure também `R2_ACCESS_KEY_ID`,
 `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT` e `R2_BUCKET_NAME`. Sem essas variáveis,
 o armazenamento local é usado somente como alternativa de desenvolvimento.
