@@ -277,7 +277,7 @@ app.UseHttpsRedirection();
 // Autentica o usuário através do JWT.
 app.UseAuthentication();
 
-// Evita que a conta pública de demonstração altere dados administrativos.
+// Protege o perfil e a senha das duas contas de administrador originais.
 // O bloqueio ocorre no servidor e não pode ser contornado pela interface.
 app.UseMiddleware<DemoAccountGuardMiddleware>();
 

@@ -22,8 +22,9 @@ ou use as credenciais abaixo:
 | Perfil | Administrador |
 
 > Esta conta é compartilhada para demonstração. Visitantes podem explorar todas
-> as áreas e operar chamados. Alterações em usuários, senhas, departamentos,
-> setores e categorias ficam bloqueadas para preservar os dados do ambiente.
+> as áreas, operar chamados e salvar cadastros e alterações no banco compartilhado.
+> Apenas as duas contas de administrador originais ficam protegidas contra
+> alterações de dados, senha, perfil e status.
 
 ## Tecnologias
 
@@ -90,9 +91,10 @@ Variáveis obrigatórias: `DATABASE_URL`, `JWT_SECRET`, `JWT_ISSUER`,
 Por padrão, `teste@teste.com` é tratada como a conta pública do ambiente de
 demonstração. O endereço pode ser substituído pela variável
 `DEMO_ACCOUNT_EMAIL`. Essa conta poderá consultar a área
-administrativa e operar chamados, mas não poderá alterar usuários, senhas,
-departamentos, setores ou categorias. A própria conta também ficará protegida
-contra alterações realizadas por outros administradores.
+administrativa, operar chamados e gerenciar os demais usuários, departamentos,
+setores e categorias, com persistência no banco. A conta de demonstração e a conta
+proprietária configurada em `SystemOwner:Email` ficam protegidas contra alterações
+administrativas e alterações do próprio perfil e senha.
 
 Para anexos persistentes, configure também `R2_ACCESS_KEY_ID`,
 `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT` e `R2_BUCKET_NAME`. Sem essas variáveis,

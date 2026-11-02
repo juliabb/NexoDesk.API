@@ -6,21 +6,14 @@ namespace NexoDesk.Middleware;
 
 public class DemoAccountGuardMiddleware
 {
-    private static readonly string[] ProtectedRoutePrefixes =
-    [
-        "/api/admin",
-        "/api/departamentos",
-        "/api/setores",
-        "/api/categorias-chamados",
-        "/api/usuarios"
-    ];
-
     private readonly RequestDelegate _next;
     private readonly string? _demoAccountEmail;
+    private readonly string? _systemOwnerEmail;
 
     public DemoAccountGuardMiddleware(RequestDelegate next, IConfiguration configuration)
     {
         _next = next;
+        _systemOwnerEmail = configuration["SystemOwner:Email"]?.Trim().ToLowerInvariant();
         _demoAccountEmail = configuration["DemoAccount:Email"]?
             .Trim()
             .ToLowerInvariant();
@@ -34,7 +27,7 @@ public class DemoAccountGuardMiddleware
             context.Response.ContentType = "application/json; charset=utf-8";
             await context.Response.WriteAsync(JsonSerializer.Serialize(new
             {
-                mensagem = "Esta ação está bloqueada no ambiente de demonstração para preservar os dados compartilhados."
+                mensagem = "Esta conta de administrador é protegida e não pode ter seus dados ou senha alterados."
             }));
             return;
         }
@@ -44,8 +37,7 @@ public class DemoAccountGuardMiddleware
 
     private bool IsBlockedMutation(HttpContext context)
     {
-        if (string.IsNullOrWhiteSpace(_demoAccountEmail) ||
-            HttpMethods.IsGet(context.Request.Method) ||
+        if (HttpMethods.IsGet(context.Request.Method) ||
             HttpMethods.IsHead(context.Request.Method) ||
             HttpMethods.IsOptions(context.Request.Method))
         {
@@ -55,14 +47,16 @@ public class DemoAccountGuardMiddleware
         var authenticatedEmail = context.User.FindFirstValue(ClaimTypes.Email) ??
             context.User.FindFirstValue(JwtRegisteredClaimNames.Email);
 
-        if (!string.Equals(authenticatedEmail, _demoAccountEmail,
-                StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(authenticatedEmail) ||
+            !(string.Equals(authenticatedEmail, _demoAccountEmail, StringComparison.OrdinalIgnoreCase) ||
+              string.Equals(authenticatedEmail, _systemOwnerEmail, StringComparison.OrdinalIgnoreCase)))
         {
             return false;
         }
 
-        return ProtectedRoutePrefixes.Any(prefix =>
-            context.Request.Path.StartsWithSegments(prefix,
-                StringComparison.OrdinalIgnoreCase));
+        // Operações administrativas são liberadas; os controllers protegem as contas alvo.
+        // Impede também alterações da própria conta protegida pelos endpoints de perfil e senha.
+        return context.Request.Path.StartsWithSegments("/api/usuarios",
+            StringComparison.OrdinalIgnoreCase);
     }
 }
