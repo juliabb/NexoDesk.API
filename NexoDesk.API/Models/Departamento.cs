@@ -4,6 +4,8 @@ public class Departamento
 {
     public int Id { get; set; }
 
+    public bool Ativo { get; set; } = true;
+
     public string Nome { get; set; } = string.Empty;
 
     public string Sigla { get; set; } = string.Empty;

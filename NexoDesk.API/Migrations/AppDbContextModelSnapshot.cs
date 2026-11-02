@@ -281,6 +281,11 @@ namespace NexoDesk.API.Migrations
 
             modelBuilder.Entity("NexoDesk.Models.Departamento", b =>
                 {
+                    b.Property<bool>("Ativo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
@@ -427,6 +432,11 @@ namespace NexoDesk.API.Migrations
 
             modelBuilder.Entity("NexoDesk.Models.Setor", b =>
                 {
+                    b.Property<bool>("Ativo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");

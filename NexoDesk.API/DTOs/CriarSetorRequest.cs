@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace NexoDesk.DTOs;
 
 public class CriarSetorRequest
@@ -5,6 +7,7 @@ public class CriarSetorRequest
     /// <summary>
     /// Nome do setor.
     /// </summary>
+    [Required, StringLength(150, MinimumLength = 2)]
     public string Nome { get; set; } = string.Empty;
 
     /// <summary>

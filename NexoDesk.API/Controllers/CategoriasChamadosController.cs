@@ -28,7 +28,7 @@ public class CategoriasChamadosController : ControllerBase
 
         if (!incluirInativas || !User.IsInRole("Administrador"))
         {
-            query = query.Where(categoria => categoria.Ativa);
+            query = query.Where(categoria => categoria.Ativa && categoria.SetorResponsavel.Ativo && categoria.SetorResponsavel.Departamento.Ativo);
         }
 
         var categorias = await query
@@ -42,7 +42,9 @@ public class CategoriasChamadosController : ControllerBase
                 setorResponsavel = new
                 {
                     categoria.SetorResponsavel.Id,
-                    categoria.SetorResponsavel.Nome
+                    categoria.SetorResponsavel.Nome,
+                    categoria.SetorResponsavel.DepartamentoId,
+                    disponivel = categoria.SetorResponsavel.Ativo && categoria.SetorResponsavel.Departamento.Ativo
                 }
             })
             .ToListAsync();
@@ -57,7 +59,7 @@ public class CategoriasChamadosController : ControllerBase
     public async Task<IActionResult> Criar([FromBody] CriarCategoriaChamadoRequest request)
     {
         var nome = request.Nome.Trim();
-        var setorExiste = await _context.Setores.AnyAsync(setor => setor.Id == request.SetorResponsavelId);
+        var setorExiste = await _context.Setores.AnyAsync(setor => setor.Id == request.SetorResponsavelId && setor.Ativo && setor.Departamento.Ativo);
 
         if (!setorExiste)
         {
@@ -110,7 +112,7 @@ public class CategoriasChamadosController : ControllerBase
                 detail: $"Não existe uma categoria com o identificador {id}.");
         }
 
-        var setorExiste = await _context.Setores.AnyAsync(setor => setor.Id == request.SetorResponsavelId);
+        var setorExiste = await _context.Setores.AnyAsync(setor => setor.Id == request.SetorResponsavelId && (setor.Id == categoria.SetorResponsavelId || (setor.Ativo && setor.Departamento.Ativo)));
         if (!setorExiste)
         {
             return Problem(statusCode: StatusCodes.Status404NotFound,
@@ -128,6 +130,10 @@ public class CategoriasChamadosController : ControllerBase
                 title: "Categoria duplicada.", detail: $"Já existe uma categoria chamada \"{nome}\".");
         }
 
+        if (request.Ativa && !categoria.Ativa &&
+            !await _context.Setores.AnyAsync(s => s.Id == request.SetorResponsavelId && s.Ativo && s.Departamento.Ativo))
+            return Conflict(new { mensagem = "Reative o setor e o departamento antes de ativar a categoria." });
+
         categoria.Nome = nome;
         categoria.Descricao = NormalizarTextoOpcional(request.Descricao);
         categoria.SetorResponsavelId = request.SetorResponsavelId;
@@ -136,6 +142,20 @@ public class CategoriasChamadosController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(new { mensagem = "Categoria atualizada com sucesso." });
+    }
+
+    [HttpPatch("{id:int}/status")]
+    [Authorize(Roles = "Administrador")]
+    public async Task<IActionResult> AlterarStatus(int id, [FromBody] AlterarStatusEstruturaRequest request)
+    {
+        var categoria = await _context.CategoriasChamados.FindAsync(id);
+        if (categoria is null) return NotFound(new { mensagem = "Categoria não encontrada." });
+        if (request.Ativo && !await _context.Setores.AnyAsync(s => s.Id == categoria.SetorResponsavelId && s.Ativo && s.Departamento.Ativo))
+            return Conflict(new { mensagem = "Reative o setor e o departamento antes de ativar a categoria." });
+        categoria.Ativa = request.Ativo;
+        categoria.AtualizadaEm = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return Ok(new { categoria.Id, categoria.Ativa });
     }
 
     private static string? NormalizarTextoOpcional(string? texto) =>

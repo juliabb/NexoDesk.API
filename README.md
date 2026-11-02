@@ -114,3 +114,21 @@ A migration `AdicionarNotificacoesCadastro` permite notificações sem chamado e
 gera avisos para os cadastros que já aguardam aprovação. Novos cadastros salvam
 o usuário e as notificações dos administradores na mesma transação. Ao clicar
 no aviso, o frontend abre a gestão de usuários filtrada por pendentes.
+
+## Gestão da estrutura organizacional
+
+A migration `AdicionarStatusEstruturaOrganizacional` adiciona `Ativo` a
+departamentos e setores, mantendo os registros existentes ativos. Administradores
+podem editar os cadastros por `PUT` e alterar seu status por `PATCH /{id}/status`
+com `{ "ativo": false }` ou `{ "ativo": true }` nas rotas de departamentos,
+setores e categorias de chamados. Os endpoints `DELETE` legados de departamentos
+e setores passam a desativar o registro, sem remoção física.
+
+As listagens comuns exibem apenas opções disponíveis. Administradores podem usar
+`incluirInativos=true` nas listagens de departamentos e setores, e
+`incluirInativas=true` em categorias. Setores e categorias de um departamento
+inativo deixam de estar disponíveis para novos vínculos, preservando os status
+individuais e os chamados existentes. A reativação de um setor ou categoria exige
+que seus pais estejam ativos. Novos cadastros e novos chamados validam esses
+status também no servidor. Esta alteração preserva registros e vínculos; o
+registro de auditoria dessas operações será implementado separadamente.

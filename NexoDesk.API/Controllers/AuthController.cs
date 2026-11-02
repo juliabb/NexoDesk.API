@@ -138,7 +138,7 @@ public class AuthController : ControllerBase
             .AsNoTracking()
             .AnyAsync(setor =>
                 setor.Id == request.SetorId &&
-                setor.DepartamentoId == request.DepartamentoId
+                setor.DepartamentoId == request.DepartamentoId && setor.Ativo && setor.Departamento.Ativo
             );
 
         if (!setorValida)

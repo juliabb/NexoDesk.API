@@ -73,7 +73,8 @@ public class DepartamentosController : ControllerBase
             {
                 departamento.Id,
                 departamento.Nome,
-                departamento.Sigla
+                departamento.Sigla,
+                departamento.Ativo
             });
     }
 
@@ -135,12 +136,13 @@ public class DepartamentosController : ControllerBase
             mensagem = "Departamento alterado com sucesso.",
             departamento.Id,
             departamento.Nome,
-            departamento.Sigla
+            departamento.Sigla,
+            departamento.Ativo
         });
     }
 
     /// <summary>
-    /// Exclui um departamento.
+    /// Desativa um departamento sem excluir o histórico.
     /// </summary>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -159,33 +161,21 @@ public class DepartamentosController : ControllerBase
                 title: "Departamento não encontrado.", detail: $"Não existe um departamento com o identificador {id}.");
         }
 
-        // Verifica se existem setores vinculados.
-        var quantidadeSetores = await _context.Setores
-            .CountAsync(setor => setor.DepartamentoId == id);
-
-        if (quantidadeSetores > 0)
-        {
-            return Problem(statusCode: StatusCodes.Status409Conflict,
-                title: "Não foi possível excluir o departamento.",
-                detail: $"O departamento \"{departamento.Nome}\" possui {quantidadeSetores} setor(es) vinculado(s). Exclua ou transfira esses setores antes de excluir o departamento.");
-        }
-
-        // Verifica se existem usuários vinculados.
-        var quantidadeUsuarios = await _context.Usuarios
-            .CountAsync(usuario => usuario.DepartamentoId == id);
-
-        if (quantidadeUsuarios > 0)
-        {
-            return Problem(statusCode: StatusCodes.Status409Conflict,
-                title: "Não foi possível excluir o departamento.",
-                detail: $"O departamento \"{departamento.Nome}\" possui {quantidadeUsuarios} usuário(s) vinculado(s). Transfira esses usuários antes de excluir o departamento.");
-        }
-
-        _context.Departamentos.Remove(departamento);
+        departamento.Ativo = false;
 
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    [HttpPatch("{id:int}/status")]
+    public async Task<IActionResult> AlterarStatus(int id, [FromBody] AlterarStatusEstruturaRequest request)
+    {
+        var item = await _context.Departamentos.FindAsync(id);
+        if (item is null) return NotFound(new { mensagem = "Registro não encontrado." });
+        item.Ativo = request.Ativo;
+        await _context.SaveChangesAsync();
+        return Ok(new { item.Id, item.Ativo });
     }
 
     /// <summary>
@@ -195,16 +185,18 @@ public class DepartamentosController : ControllerBase
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [Tags("Cadastro - Departamentos")]
-    public async Task<IActionResult> Listar()
+    public async Task<IActionResult> Listar([FromQuery] bool incluirInativos = false)
     {
         var departamentos = await _context.Departamentos
             .AsNoTracking()
+            .Where(d => d.Ativo || (incluirInativos && User.IsInRole("Administrador")))
             .OrderBy(departamento => departamento.Nome)
             .Select(departamento => new
             {
                 departamento.Id,
                 departamento.Nome,
-                departamento.Sigla
+                departamento.Sigla,
+                departamento.Ativo
             })
             .ToListAsync();
 

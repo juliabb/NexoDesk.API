@@ -168,7 +168,9 @@ public class AdminController : ControllerBase
 
         var setorValida = await _context.Setores
             .AnyAsync(a => a.Id == request.SetorId &&
-                           a.DepartamentoId == request.DepartamentoId);
+                           a.DepartamentoId == request.DepartamentoId &&
+                           ((a.Ativo && a.Departamento.Ativo) ||
+                            (usuario.SetorId == request.SetorId && usuario.DepartamentoId == request.DepartamentoId)));
 
         if (!setorValida)
         {

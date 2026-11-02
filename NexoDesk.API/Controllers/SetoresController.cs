@@ -41,7 +41,7 @@ public class SetoresController : ControllerBase
 
         var departamento = await _context.Departamentos
             .FirstOrDefaultAsync(departamento =>
-                departamento.Id == request.DepartamentoId);
+                departamento.Id == request.DepartamentoId && departamento.Ativo);
 
         if (departamento == null)
         {
@@ -122,7 +122,7 @@ public class SetoresController : ControllerBase
         var departamentoExiste =
             await _context.Departamentos
                 .AnyAsync(departamento =>
-                    departamento.Id == request.DepartamentoId);
+                    departamento.Id == request.DepartamentoId && (departamento.Ativo || setor.DepartamentoId == request.DepartamentoId));
 
         if (!departamentoExiste)
         {
@@ -148,6 +148,11 @@ public class SetoresController : ControllerBase
                 detail: $"Já existe um setor chamado \"{nome}\" nesse departamento.");
         }
 
+        if (setor.DepartamentoId != request.DepartamentoId &&
+            (await _context.Usuarios.AnyAsync(u => u.SetorId == id) ||
+             await _context.Chamados.AnyAsync(c => c.SetorResponsavelId == id || c.SetorSolicitanteId == id)))
+            return Conflict(new { mensagem = "Este setor possui usuários ou chamados vinculados. Crie outro setor para preservar os vínculos existentes." });
+
         setor.Nome = nome;
         setor.DepartamentoId = request.DepartamentoId;
 
@@ -163,7 +168,7 @@ public class SetoresController : ControllerBase
     }
 
     /// <summary>
-    /// Exclui um setor.
+    /// Desativa um setor sem excluir o histórico.
     /// </summary>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -184,23 +189,23 @@ public class SetoresController : ControllerBase
                 detail: $"Não existe um setor com o identificador {id}.");
         }
 
-        // Verifica se existem usuários vinculados.
-        var quantidadeUsuarios = await _context.Usuarios
-            .CountAsync(usuario => usuario.SetorId == id);
-
-        if (quantidadeUsuarios > 0)
-        {
-            return Problem(
-                statusCode: StatusCodes.Status409Conflict,
-                title: "Não foi possível excluir o setor.",
-                detail: $"O setor \"{setor.Nome}\" possui {quantidadeUsuarios} usuário(s) vinculado(s). Transfira esses usuários para outro setor antes de excluí-lo.");
-        }
-
-        _context.Setores.Remove(setor);
+        setor.Ativo = false;
 
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    [HttpPatch("{id:int}/status")]
+    public async Task<IActionResult> AlterarStatus(int id, [FromBody] AlterarStatusEstruturaRequest request)
+    {
+        var item = await _context.Setores.FindAsync(id);
+        if (item is null) return NotFound(new { mensagem = "Registro não encontrado." });
+        if (request.Ativo && !await _context.Departamentos.AnyAsync(d => d.Id == item.DepartamentoId && d.Ativo))
+            return Conflict(new { mensagem = "Reative o departamento antes de ativar o setor." });
+        item.Ativo = request.Ativo;
+        await _context.SaveChangesAsync();
+        return Ok(new { item.Id, item.Ativo });
     }
 
     /// <summary>
@@ -214,6 +219,7 @@ public class SetoresController : ControllerBase
     public async Task<IActionResult> ListarPorDepartamento(
         int departamentoId,
         [FromQuery] string? nome = null,
+        [FromQuery] bool incluirInativos = false,
         [FromQuery] int? page = null,
         [FromQuery] int? pageSize = null)
     {
@@ -233,7 +239,8 @@ public class SetoresController : ControllerBase
         var query = _context.Setores
             .AsNoTracking()
             .Where(setor =>
-                setor.DepartamentoId == departamentoId);
+                setor.DepartamentoId == departamentoId)
+            .Where(s => (s.Ativo && s.Departamento.Ativo) || (incluirInativos && User.IsInRole("Administrador")));
 
         if (!string.IsNullOrWhiteSpace(nome))
         {
@@ -246,7 +253,7 @@ public class SetoresController : ControllerBase
         {
             var todosOsSetores = await query
                 .OrderBy(setor => setor.Nome)
-                .Select(setor => new { setor.Id, setor.Nome })
+                .Select(setor => new { setor.Id, setor.Nome, setor.Ativo, setor.DepartamentoId })
                 .ToListAsync();
 
             return Ok(todosOsSetores);
@@ -263,6 +270,8 @@ public class SetoresController : ControllerBase
             {
                 setor.Id,
                 setor.Nome,
+                setor.Ativo,
+                setor.DepartamentoId
             })
             .ToListAsync();
 

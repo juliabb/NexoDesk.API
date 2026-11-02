@@ -69,6 +69,7 @@ public class ChamadosController : ControllerBase
         }
 
         var categoria = await _context.CategoriasChamados.AsNoTracking()
+            .Include(c => c.SetorResponsavel).ThenInclude(s => s.Departamento)
             .FirstOrDefaultAsync(item => item.Id == request.CategoriaId);
 
         if (categoria is null)
@@ -78,7 +79,7 @@ public class ChamadosController : ControllerBase
                 detail: $"Não existe uma categoria com o identificador {request.CategoriaId}.");
         }
 
-        if (!categoria.Ativa)
+        if (!categoria.Ativa || !categoria.SetorResponsavel.Ativo || !categoria.SetorResponsavel.Departamento.Ativo)
         {
             return Problem(statusCode: StatusCodes.Status409Conflict,
                 title: "Categoria indisponível.",

@@ -149,6 +149,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Setor>(entity =>
         {
             entity.ToTable("setores");
+            entity.Property(item => item.Ativo).HasDefaultValue(true).IsRequired();
 
             entity.HasKey(setor => setor.Id);
 
@@ -175,6 +176,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Departamento>(entity =>
         {
             entity.ToTable("departamentos");
+            entity.Property(item => item.Ativo).HasDefaultValue(true).IsRequired();
 
             entity.HasKey(departamento => departamento.Id);
 

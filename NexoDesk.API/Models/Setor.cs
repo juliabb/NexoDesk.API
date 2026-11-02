@@ -4,6 +4,8 @@ public class Setor
 {
     public int Id { get; set; }
 
+    public bool Ativo { get; set; } = true;
+
     public string Nome { get; set; } = string.Empty;
 
     public int DepartamentoId { get; set; }
