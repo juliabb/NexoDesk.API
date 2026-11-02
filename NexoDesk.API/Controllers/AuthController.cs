@@ -187,6 +187,23 @@ public class AuthController : ControllerBase
         // Adiciona o usuário ao contexto do Entity Framework.
         _context.Usuarios.Add(usuario);
 
+        // O cadastro e os avisos são persistidos na mesma transação do SaveChanges.
+        var administradores = await _context.Usuarios
+            .Where(u => u.Perfil == PerfilUsuario.Administrador &&
+                        u.Status == StatusUsuario.Aprovado && u.Ativo)
+            .Select(u => u.Id)
+            .ToListAsync();
+        foreach (var administradorId in administradores)
+        {
+            _context.Notificacoes.Add(new Notificacao
+            {
+                UsuarioId = administradorId,
+                Tipo = TipoNotificacao.CadastroPendente,
+                Titulo = "Novo cadastro aguardando aprovação",
+                Mensagem = $"{usuario.NomeCompleto} ({usuario.EmailCorporativo}) solicitou acesso ao NexoDesk."
+            });
+        }
+
         // Persiste o novo usuário no PostgreSQL.
         await _context.SaveChangesAsync();
 

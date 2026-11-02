@@ -56,6 +56,7 @@ ou use as credenciais abaixo:
 - Comentários internos visíveis somente para a equipe de atendimento
 - Perfil de atendente com acesso restrito à fila do próprio setor
 - Notificações internas para atribuições, status e comentários públicos
+- Avisos de novos cadastros pendentes para administradores ativos e aprovados
 - Caixa paginada, contador de não lidas e confirmação de leitura
 - Anexos públicos e internos com download protegido por autorização
 - Armazenamento de anexos no Cloudflare R2 com limite de 10 MB
@@ -106,3 +107,10 @@ O arquivo `compose.yaml` inicia um PostgreSQL isolado na porta `5433`. Configure
 `LOCAL_DATABASE_URL` conforme o `.env.example` e execute `docker compose up -d`.
 Em Development, a API prioriza essa conexão local e aplica as migrations
 automaticamente. O Render continua utilizando `DATABASE_URL` com o Neon.
+
+## Notificações de aprovação de cadastro
+
+A migration `AdicionarNotificacoesCadastro` permite notificações sem chamado e
+gera avisos para os cadastros que já aguardam aprovação. Novos cadastros salvam
+o usuário e as notificações dos administradores na mesma transação. Ao clicar
+no aviso, o frontend abre a gestão de usuários filtrada por pendentes.

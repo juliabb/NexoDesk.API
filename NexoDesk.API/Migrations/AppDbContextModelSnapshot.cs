@@ -385,7 +385,7 @@ namespace NexoDesk.API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("ChamadoId")
+                    b.Property<Guid?>("ChamadoId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CriadaEm")
@@ -667,8 +667,7 @@ namespace NexoDesk.API.Migrations
                     b.HasOne("NexoDesk.Models.Chamado", "Chamado")
                         .WithMany("Notificacoes")
                         .HasForeignKey("ChamadoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("NexoDesk.Models.Usuario", "Usuario")
                         .WithMany("Notificacoes")

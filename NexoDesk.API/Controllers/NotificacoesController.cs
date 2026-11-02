@@ -57,7 +57,7 @@ public class NotificacoesController : ControllerBase
                 notificacao.Lida,
                 notificacao.CriadaEm,
                 notificacao.LidaEm,
-                chamado = new
+                chamado = notificacao.Chamado == null ? null : new
                 {
                     notificacao.Chamado.Id,
                     notificacao.Chamado.Protocolo
