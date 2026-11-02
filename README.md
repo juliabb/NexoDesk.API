@@ -4,6 +4,27 @@ Backend de uma central corporativa de serviços internos. O NexoDesk permitirá
 que colaboradores abram e acompanhem solicitações para setores como TI, RH,
 infraestrutura e compras.
 
+## Aplicação online e repositórios
+
+- [Abrir o NexoDesk](https://nexodeskfront.onrender.com/login)
+- [Frontend — React e TypeScript](https://github.com/juliabb/NexoDeskFront)
+- [Backend — ASP.NET Core Web API](https://github.com/juliabb/NexoDesk.API)
+
+## Acesso para demonstração
+
+Na tela de login, clique em **Preencher conta de teste** e depois em **Entrar**,
+ou use as credenciais abaixo:
+
+| Campo | Credencial |
+| --- | --- |
+| E-mail | `teste@teste.com` |
+| Senha | `@Password123` |
+| Perfil | Administrador |
+
+> Esta conta é compartilhada para demonstração. Visitantes podem explorar todas
+> as áreas e operar chamados. Alterações em usuários, senhas, departamentos,
+> setores e categorias ficam bloqueadas para preservar os dados do ambiente.
+
 ## Tecnologias
 
 - .NET 10 e ASP.NET Core Web API
